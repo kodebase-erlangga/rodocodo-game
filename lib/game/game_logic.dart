@@ -3,49 +3,111 @@ import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
-class MyGame extends FlameGame {
-  late Character _character;
-  late SpriteComponent _target;
-  bool isExecuting = false;
-  bool isTargetReached = false;
+enum TileType { normal, coin, obstacle, finish, start }
 
-  @override
-  Color backgroundColor() => Colors.greenAccent;
+class FloorTile extends SpriteComponent with HasGameRef<MyGame> {
+  final String id;
+  TileType _type;
+  TileType get type => _type;
+  set type(TileType newType) {
+    if (newType != _type) {
+      _type = newType;
+      _updateSprite();
+    }
+  }
+
+  FloorTile({
+    required this.id,
+    required TileType type,
+    required Vector2 position,
+  })  : _type = type,
+        super(position: position, size: Vector2.all(150));
 
   @override
   Future<void> onLoad() async {
-    _character = Character();
-    add(_character);
-
-    _target = SpriteComponent()
-      ..sprite = await loadSprite('target.png')
-      ..size = Vector2(50, 50)
-      ..position = Vector2(300, 200);
-    add(_target);
+    await super.onLoad();
+    await _updateSprite();
   }
+
+  Future<void> _updateSprite() async {
+    switch (_type) {
+      case TileType.start:
+        sprite = await gameRef.loadSprite('start.jpg');
+        break;
+      case TileType.normal:
+        sprite = await gameRef.loadSprite('lantai.jpg');
+        break;
+      case TileType.coin:
+        sprite = await gameRef.loadSprite('koin.jpg');
+        break;
+      case TileType.obstacle:
+        sprite = await gameRef.loadSprite('granat.jpg');
+        break;
+      case TileType.finish:
+        sprite = await gameRef.loadSprite('finish.jpg');
+        break;
+    }
+  }
+}
+
+class MyGame extends FlameGame {
+  late Character _character;
+  bool isExecuting = false;
+  bool isTargetReached = false;
+  List<List<TileType>> tileGrid = [];
+  late double startX;
+  late Vector2 startTileCenter;
 
   @override
-  void render(Canvas canvas) {
-    super.render(canvas);
-    _drawGrid(canvas);
+  Color backgroundColor() => Colors.white;
+
+  @override
+  Future<void> onLoad() async {
+    _generateFloorTiles();
+    _character = Character();
+    _character.position = startTileCenter;
+    add(_character);
   }
 
-  void _drawGrid(Canvas canvas) {
-    final gridPaint = Paint()
-      ..color = Colors.white.withOpacity(0.2)
-      ..strokeWidth = 1;
+  void _generateFloorTiles() {
+    const tileSize = 150.0;
+    const rows = 1;
+    const columns = 4;
 
-    const gridSize = 50;
-    final screenWidth = size.x;
-    final screenHeight = size.y;
+    startX = (size.x - columns * tileSize) / 2;
+    final startY = (size.y - tileSize) / 2;
 
-    for (double x = 0; x <= screenWidth; x += gridSize) {
-      canvas.drawLine(Offset(x, 0), Offset(x, screenHeight), gridPaint);
+    tileGrid =
+        List.generate(rows, (row) => List.filled(columns, TileType.normal));
+
+    for (int row = 0; row < rows; row++) {
+      for (int col = 0; col < columns; col++) {
+        final id = 'row${row}_col$col';
+        final position = Vector2(
+          startX + col * tileSize,
+          startY + row * tileSize,
+        );
+
+        // Atur urutan tile
+        final type = col == 0
+            ? TileType.start
+            : col == columns - 1
+                ? TileType.finish
+                : TileType.normal;
+
+        tileGrid[row][col] = type;
+        final tile = FloorTile(id: id, type: type, position: position);
+        add(tile);
+
+        if (type == TileType.start) {
+          startTileCenter = position + Vector2(0, tileSize / 4);
+        }
+      }
     }
+  }
 
-    for (double y = 0; y <= screenHeight; y += gridSize) {
-      canvas.drawLine(Offset(0, y), Offset(screenWidth, y), gridPaint);
-    }
+  void showGameOver() {
+    overlays.add('gameOver');
   }
 
   Future<void> executeCommands(List<String> commands) async {
@@ -63,9 +125,6 @@ class MyGame extends FlameGame {
         case 'BELOK_KIRI':
           _character.turnLeft();
           break;
-        case 'PUTAR_BALIK':
-          _character.turnAround();
-          break;
         default:
           print("Perintah tidak dikenali: $command");
       }
@@ -73,8 +132,14 @@ class MyGame extends FlameGame {
     isExecuting = false;
   }
 
-  void checkTargetReached() {
-    if (_character.position.distanceTo(_target.position) < 25 && !isTargetReached) {
+  void checkTargetReached(Vector2 position) {
+    if (isTargetReached) return;
+
+    final tileX =
+        ((position.x - startX) ~/ 150).clamp(0, tileGrid[0].length - 1);
+    final tileY = 0; // Karena hanya 1 baris
+
+    if (tileGrid[tileY][tileX] == TileType.finish) {
       isTargetReached = true;
       showCongratsPopup();
     }
@@ -83,36 +148,70 @@ class MyGame extends FlameGame {
   void showCongratsPopup() {
     overlays.add('congrats');
   }
+
+  void resetGame() {
+    isTargetReached = false;
+    isExecuting = false;
+
+    removeAll(children);
+
+    _generateFloorTiles();
+    _character = Character();
+    _character.position =
+        startTileCenter;
+    add(_character);
+  }
 }
 
 class Character extends SpriteComponent with HasGameRef<MyGame> {
-  static const double moveDistance = 50;
+  static const double moveDistance = 150;
   static const double speed = 100;
   static const double rotationSpeed = 1.5;
   Vector2? targetPosition;
   double targetAngle = 0;
 
-  Character() : super(size: Vector2.all(50));
+  Character() : super(size: Vector2.all(100));
 
   @override
   Future<void> onLoad() async {
     try {
       sprite = await gameRef.loadSprite('character.png');
-      print("Gambar karakter berhasil dimuat!");
     } catch (e) {
       print("Gagal memuat gambar karakter: $e");
     }
-    position = Vector2(100, 300);
-    angle = 0;
   }
 
   Future<void> moveForward() async {
+    final game = gameRef;
     final direction = Vector2(cos(angle), sin(angle));
-    targetPosition = position + direction * moveDistance;
+    final nextPosition = position + direction * moveDistance;
+
+    // Hitung batas berdasarkan jumlah tile
+    final allowedXStart = game.startX;
+    final allowedXEnd = allowedXStart + (game.tileGrid[0].length - 1) * 150;
+    final allowedY = game.startTileCenter.y;
+
+    // Cek posisi valid dalam area lantai
+    if (nextPosition.x < allowedXStart - 75 ||
+        nextPosition.x > allowedXEnd + 75 ||
+        (nextPosition.y - allowedY).abs() > 75) {
+      game.showGameOver();
+      return;
+    }
+
+    // Cek obstacle
+    final tileX = ((nextPosition.x - game.startX) ~/ 150)
+        .clamp(0, game.tileGrid[0].length - 1);
+    if (game.tileGrid[0][tileX] == TileType.obstacle) {
+      print("Cannot move forward, obstacle detected");
+      return;
+    }
+
+    targetPosition = nextPosition;
 
     while (targetPosition != null && position.distanceTo(targetPosition!) > 1) {
       await Future.delayed(const Duration(milliseconds: 16));
-      gameRef.checkTargetReached();
+      game.checkTargetReached(position);
     }
   }
 
@@ -122,10 +221,6 @@ class Character extends SpriteComponent with HasGameRef<MyGame> {
 
   void turnLeft() {
     targetAngle = angle - 1.5708;
-  }
-
-  void turnAround() {
-    targetAngle = angle + 3.1416;
   }
 
   @override

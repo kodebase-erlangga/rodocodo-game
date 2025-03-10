@@ -44,11 +44,14 @@ class _GameScreenState extends State<GameScreen> {
                     Wrap(
                       spacing: 8,
                       children: [
-                        _buildIconButton(Icons.arrow_upward, () => addCommand('MAJU')),
-                        _buildIconButton(Icons.arrow_forward, () => addCommand('BELOK_KANAN')),
-                        _buildIconButton(Icons.arrow_back, () => addCommand('BELOK_KIRI')),
-                        _buildIconButton(Icons.rotate_left, () => addCommand('PUTAR_BALIK')),
-                        _buildIconButton(Icons.play_arrow, runCommands, isRunButton: true),
+                        _buildIconButton(
+                            Icons.arrow_upward, () => addCommand('MAJU')),
+                        _buildIconButton(
+                            Icons.arrow_forward, () => addCommand('KANAN')),
+                        _buildIconButton(
+                            Icons.arrow_back, () => addCommand('KIRI')),
+                        _buildIconButton(Icons.play_arrow, runCommands,
+                            isRunButton: true),
                       ],
                     ),
                     const SizedBox(height: 10),
@@ -61,7 +64,7 @@ class _GameScreenState extends State<GameScreen> {
               ),
             ],
           ),
-          
+
           if (_game.isTargetReached)
             Center(
               child: AlertDialog(
@@ -79,12 +82,29 @@ class _GameScreenState extends State<GameScreen> {
                 ],
               ),
             ),
+
+          if (_game.isTargetReached)
+            Positioned(
+              right: 20,
+              bottom: 20,
+              child: FloatingActionButton(
+                onPressed: () {
+                  setState(() {
+                    commands = [];
+                    _game.resetGame();
+                  });
+                },
+                child: const Icon(Icons.replay),
+                backgroundColor: Colors.green,
+              ),
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildIconButton(IconData icon, VoidCallback onPressed, {bool isRunButton = false}) {
+  Widget _buildIconButton(IconData icon, VoidCallback onPressed,
+      {bool isRunButton = false}) {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
