@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
@@ -69,6 +70,47 @@ class MyGame extends FlameGame {
     add(_character);
   }
 
+  @override
+  void onAttach() {
+    overlays.addEntry('gameOver', (context, game) {
+      return Center(
+        child: AlertDialog(
+          title: const Text("Game Over!"),
+          content: const Text("Karakter keluar dari jalur!"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                overlays.remove('gameOver');
+                resetGame();
+              },
+              child: const Text("Coba Lagi"),
+            ),
+          ],
+        ),
+      );
+    });
+
+    overlays.addEntry('congrats', (context, game) {
+      return Center(
+        child: AlertDialog(
+          title: const Text("Selamat!"),
+          content: const Text("Anda berhasil mencapai finish!"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                overlays.remove('congrats');
+                resetGame();
+              },
+              child: const Text("Main Lagi"),
+            ),
+          ],
+        ),
+      );
+    });
+
+    super.onAttach();
+  }
+
   void _generateFloorTiles() {
     const tileSize = 150.0;
     const rows = 1;
@@ -88,7 +130,6 @@ class MyGame extends FlameGame {
           startY + row * tileSize,
         );
 
-        // Atur urutan tile
         final type = col == 0
             ? TileType.start
             : col == columns - 1
@@ -100,7 +141,7 @@ class MyGame extends FlameGame {
         add(tile);
 
         if (type == TileType.start) {
-          startTileCenter = position + Vector2(0, tileSize / 4);
+          startTileCenter = position + Vector2(tileSize / 2, tileSize / 2);
         }
       }
     }
@@ -119,15 +160,16 @@ class MyGame extends FlameGame {
         case 'MAJU':
           await _character.moveForward();
           break;
-        case 'BELOK_KANAN':
-          _character.turnRight();
+        case 'KANAN':
+          await _character.turnRight();
           break;
-        case 'BELOK_KIRI':
-          _character.turnLeft();
+        case 'KIRI':
+          await _character.turnLeft();
           break;
         default:
           print("Perintah tidak dikenali: $command");
       }
+      checkTargetReached(_character.position);
     }
     isExecuting = false;
   }
@@ -137,7 +179,7 @@ class MyGame extends FlameGame {
 
     final tileX =
         ((position.x - startX) ~/ 150).clamp(0, tileGrid[0].length - 1);
-    final tileY = 0; // Karena hanya 1 baris
+    final tileY = 0;
 
     if (tileGrid[tileY][tileX] == TileType.finish) {
       isTargetReached = true;
@@ -150,6 +192,8 @@ class MyGame extends FlameGame {
   }
 
   void resetGame() {
+    overlays.remove('gameOver');
+    overlays.remove('congrats');
     isTargetReached = false;
     isExecuting = false;
 
@@ -157,8 +201,7 @@ class MyGame extends FlameGame {
 
     _generateFloorTiles();
     _character = Character();
-    _character.position =
-        startTileCenter;
+    _character.position = startTileCenter;
     add(_character);
   }
 }
@@ -169,8 +212,10 @@ class Character extends SpriteComponent with HasGameRef<MyGame> {
   static const double rotationSpeed = 1.5;
   Vector2? targetPosition;
   double targetAngle = 0;
+  Completer<void>? _movementCompleter;
+  Completer<void>? _rotationCompleter;
 
-  Character() : super(size: Vector2.all(100));
+  Character() : super(size: Vector2.all(100), anchor: Anchor.center);
 
   @override
   Future<void> onLoad() async {
@@ -186,12 +231,10 @@ class Character extends SpriteComponent with HasGameRef<MyGame> {
     final direction = Vector2(cos(angle), sin(angle));
     final nextPosition = position + direction * moveDistance;
 
-    // Hitung batas berdasarkan jumlah tile
     final allowedXStart = game.startX;
     final allowedXEnd = allowedXStart + (game.tileGrid[0].length - 1) * 150;
     final allowedY = game.startTileCenter.y;
 
-    // Cek posisi valid dalam area lantai
     if (nextPosition.x < allowedXStart - 75 ||
         nextPosition.x > allowedXEnd + 75 ||
         (nextPosition.y - allowedY).abs() > 75) {
@@ -199,7 +242,6 @@ class Character extends SpriteComponent with HasGameRef<MyGame> {
       return;
     }
 
-    // Cek obstacle
     final tileX = ((nextPosition.x - game.startX) ~/ 150)
         .clamp(0, game.tileGrid[0].length - 1);
     if (game.tileGrid[0][tileX] == TileType.obstacle) {
@@ -207,26 +249,31 @@ class Character extends SpriteComponent with HasGameRef<MyGame> {
       return;
     }
 
+    _movementCompleter?.completeError("Interrupted");
     targetPosition = nextPosition;
-
-    while (targetPosition != null && position.distanceTo(targetPosition!) > 1) {
-      await Future.delayed(const Duration(milliseconds: 16));
-      game.checkTargetReached(position);
-    }
+    _movementCompleter = Completer();
+    return _movementCompleter!.future;
   }
 
-  void turnRight() {
+  Future<void> turnRight() {
+    _rotationCompleter?.completeError("Interrupted");
     targetAngle = angle + 1.5708;
+    _rotationCompleter = Completer();
+    return _rotationCompleter!.future;
   }
 
-  void turnLeft() {
+  Future<void> turnLeft() {
+    _rotationCompleter?.completeError("Interrupted");
     targetAngle = angle - 1.5708;
+    _rotationCompleter = Completer();
+    return _rotationCompleter!.future;
   }
 
   @override
   void update(double dt) {
     super.update(dt);
 
+    // Handle pergerakan
     if (targetPosition != null) {
       final direction = (targetPosition! - position).normalized();
       position += direction * speed * dt;
@@ -234,10 +281,13 @@ class Character extends SpriteComponent with HasGameRef<MyGame> {
       if (position.distanceTo(targetPosition!) < 1) {
         position = targetPosition!;
         targetPosition = null;
+        _movementCompleter?.complete();
+        _movementCompleter = null;
       }
     }
 
-    if (angle != targetAngle) {
+    // Handle rotasi
+    if ((targetAngle - angle).abs() > 1e-3) {
       final angleDifference = targetAngle - angle;
       final rotationStep = rotationSpeed * dt;
 
@@ -246,6 +296,9 @@ class Character extends SpriteComponent with HasGameRef<MyGame> {
       } else {
         angle += rotationStep * angleDifference.sign;
       }
+    } else {
+      _rotationCompleter?.complete();
+      _rotationCompleter = null;
     }
   }
 }

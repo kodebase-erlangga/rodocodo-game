@@ -13,10 +13,12 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> {
   final MyGame _game = MyGame();
   List<String> commands = [];
+  int moveCount = 0;
 
   void addCommand(String command) {
     setState(() {
       commands.add(command);
+      moveCount++;
     });
   }
 
@@ -44,27 +46,54 @@ class _GameScreenState extends State<GameScreen> {
                     Wrap(
                       spacing: 8,
                       children: [
-                        _buildIconButton(
-                            Icons.arrow_upward, () => addCommand('MAJU')),
-                        _buildIconButton(
-                            Icons.arrow_forward, () => addCommand('KANAN')),
-                        _buildIconButton(
-                            Icons.arrow_back, () => addCommand('KIRI')),
+                        _buildImageButton(
+                            'assets/images/maju.png', () => addCommand('MAJU')),
+                        _buildImageButton(
+                            'assets/images/kiri.png', () => addCommand('KIRI')),
+                        _buildImageButton('assets/images/kanan.png',
+                            () => addCommand('KANAN')),
                         _buildIconButton(Icons.play_arrow, runCommands,
                             isRunButton: true),
                       ],
                     ),
                     const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      children: commands.map((command) {
+                        IconData icon;
+                        switch (command) {
+                          case 'MAJU':
+                            icon = Icons.arrow_upward;
+                            break;
+                          case 'KIRI':
+                            icon = Icons.arrow_back;
+                            break;
+                          case 'KANAN':
+                            icon = Icons.arrow_forward;
+                            break;
+                          default:
+                            icon = Icons.error;
+                        }
+                        return Icon(
+                          icon,
+                          color: Colors.black,
+                          size: 24,
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 10),
                     Text(
-                      "Perintah: ${commands.join(', ')}",
-                      style: const TextStyle(color: Colors.black, fontSize: 16),
+                      "Total Langkah: $moveCount",
+                      style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
               ),
             ],
           ),
-
           if (_game.isTargetReached)
             Center(
               child: AlertDialog(
@@ -75,6 +104,7 @@ class _GameScreenState extends State<GameScreen> {
                     onPressed: () {
                       setState(() {
                         _game.isTargetReached = false;
+                        moveCount = 0;
                       });
                     },
                     child: const Text("OK"),
@@ -82,7 +112,6 @@ class _GameScreenState extends State<GameScreen> {
                 ],
               ),
             ),
-
           if (_game.isTargetReached)
             Positioned(
               right: 20,
@@ -92,13 +121,33 @@ class _GameScreenState extends State<GameScreen> {
                   setState(() {
                     commands = [];
                     _game.resetGame();
+                    moveCount = 0;
                   });
                 },
-                child: const Icon(Icons.replay),
                 backgroundColor: Colors.green,
+                child: const Icon(Icons.replay),
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildImageButton(String assetPath, VoidCallback onPressed) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.blueGrey[700],
+        padding: const EdgeInsets.all(12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: BorderSide(color: Colors.white, width: 1),
+        ),
+      ),
+      child: Image.asset(
+        assetPath,
+        width: 24,
+        height: 24,
       ),
     );
   }
@@ -109,7 +158,7 @@ class _GameScreenState extends State<GameScreen> {
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
         backgroundColor: isRunButton ? Colors.green : Colors.blueGrey[700],
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
           side: BorderSide(color: Colors.white, width: 1),
