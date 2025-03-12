@@ -55,9 +55,12 @@ class MyGame extends FlameGame {
   late Character _character;
   bool isExecuting = false;
   bool isTargetReached = false;
-  List<List<TileType>> tileGrid = [];
+  List<List<TileType?>> tileGrid = [];
   late double startX;
+  late double startY;
   late Vector2 startTileCenter;
+
+  int currentLevel = 1;
 
   @override
   Color backgroundColor() => Colors.white;
@@ -99,49 +102,138 @@ class MyGame extends FlameGame {
             TextButton(
               onPressed: () {
                 overlays.remove('congrats');
+                currentLevel++;
                 resetGame();
               },
-              child: const Text("Main Lagi"),
+              child: const Text("Level Selanjutnya"),
             ),
           ],
         ),
       );
     });
-
     super.onAttach();
   }
 
   void _generateFloorTiles() {
     const tileSize = 150.0;
-    const rows = 1;
-    const columns = 4;
+    removeWhere((component) => component is FloorTile);
 
-    startX = (size.x - columns * tileSize) / 2;
-    final startY = (size.y - tileSize) / 2;
+    if (currentLevel == 1) {
+      const rows = 1;
+      const columns = 4;
+      startX = (size.x - columns * tileSize) / 2;
+      startY = (size.y - tileSize) / 2;
 
-    tileGrid =
-        List.generate(rows, (row) => List.filled(columns, TileType.normal));
+      tileGrid =
+          List.generate(rows, (row) => List.filled(columns, TileType.normal));
 
-    for (int row = 0; row < rows; row++) {
-      for (int col = 0; col < columns; col++) {
-        final id = 'row${row}_col$col';
-        final position = Vector2(
-          startX + col * tileSize,
-          startY + row * tileSize,
-        );
+      for (int row = 0; row < rows; row++) {
+        for (int col = 0; col < columns; col++) {
+          final id = 'row${row}_col$col';
+          final position = Vector2(
+            startX + col * tileSize,
+            startY + row * tileSize,
+          );
 
-        final type = col == 0
-            ? TileType.start
-            : col == columns - 1
-                ? TileType.finish
-                : TileType.normal;
+          final type = col == 0
+              ? TileType.start
+              : col == columns - 1
+                  ? TileType.finish
+                  : TileType.normal;
 
-        tileGrid[row][col] = type;
-        final tile = FloorTile(id: id, type: type, position: position);
-        add(tile);
+          tileGrid[row][col] = type;
+          final tile = FloorTile(id: id, type: type, position: position);
+          add(tile);
 
-        if (type == TileType.start) {
-          startTileCenter = position + Vector2(tileSize / 2, tileSize / 2);
+          if (type == TileType.start) {
+            startTileCenter = position + Vector2(tileSize / 2, tileSize / 2);
+          }
+        }
+      }
+    } else if (currentLevel == 2) {
+      const rows = 2;
+      const columns = 5;
+      startX = (size.x - columns * tileSize) / 2;
+      startY = (size.y - rows * tileSize) / 2;
+
+      tileGrid = List.generate(rows, (row) => List.filled(columns, null));
+
+      for (int row = 0; row < rows; row++) {
+        for (int col = 0; col < columns; col++) {
+          TileType? type;
+          if (row == 0) {
+            if (col == 3) {
+              type = null;
+            } else {
+              type = col == 0
+                  ? TileType.start
+                  : col == columns - 1
+                      ? TileType.finish
+                      : TileType.normal;
+            }
+          } else if (row == 1 && (col == 2 || col == 3 || col == 4)) {
+            type = TileType.normal;
+          } else {
+            type = null;
+          }
+
+          if (type != null) {
+            final id = 'row${row}_col$col';
+            final position = Vector2(
+              startX + col * tileSize,
+              startY + row * tileSize,
+            );
+            tileGrid[row][col] = type;
+            final tile = FloorTile(id: id, type: type, position: position);
+            add(tile);
+
+            if (type == TileType.start) {
+              startTileCenter = position + Vector2(tileSize / 2, tileSize / 2);
+            }
+          }
+        }
+      }
+    } else if (currentLevel == 3) {
+      const rows = 3;
+      const columns = 5;
+      startX = (size.x - columns * tileSize) / 2;
+      startY = (size.y - rows * tileSize) / 2;
+
+      tileGrid = List.generate(rows, (row) => List.filled(columns, null));
+
+      for (int row = 0; row < rows; row++) {
+        for (int col = 0; col < columns; col++) {
+          TileType? type;
+          if (row == 0) {
+            if (col == 3 || col == 4) {
+              type = null;
+            } else {
+              type = col == 0
+                  ? TileType.start
+                  : col == columns - 1
+                      ? TileType.finish
+                      : TileType.normal;
+            }
+          } else if (row == 1 && (col == 2)) {
+            type = TileType.normal;
+          } else if (row == 2 && (col == 2 || col == 3 || col == 4)){
+            type = null;
+          }
+
+          if (type != null) {
+            final id = 'row${row}_col$col';
+            final position = Vector2(
+              startX + col * tileSize,
+              startY + row * tileSize,
+            );
+            tileGrid[row][col] = type;
+            final tile = FloorTile(id: id, type: type, position: position);
+            add(tile);
+
+            if (type == TileType.start) {
+              startTileCenter = position + Vector2(tileSize / 2, tileSize / 2);
+            }
+          }
         }
       }
     }
@@ -177,9 +269,13 @@ class MyGame extends FlameGame {
   void checkTargetReached(Vector2 position) {
     if (isTargetReached) return;
 
-    final tileX =
-        ((position.x - startX) ~/ 150).clamp(0, tileGrid[0].length - 1);
-    final tileY = 0;
+    final tileX = ((position.x - startX) ~/ 150);
+    final tileY = ((position.y - startY) ~/ 150);
+
+    if (tileY < 0 ||
+        tileY >= tileGrid.length ||
+        tileX < 0 ||
+        tileX >= tileGrid[tileY].length) return;
 
     if (tileGrid[tileY][tileX] == TileType.finish) {
       isTargetReached = true;
@@ -231,24 +327,24 @@ class Character extends SpriteComponent with HasGameRef<MyGame> {
     final direction = Vector2(cos(angle), sin(angle));
     final nextPosition = position + direction * moveDistance;
 
-    final allowedXStart = game.startX;
-    final allowedXEnd = allowedXStart + (game.tileGrid[0].length - 1) * 150;
-    final allowedY = game.startTileCenter.y;
+    final tileX = ((nextPosition.x - game.startX) ~/ 150);
+    final tileY = ((nextPosition.y - game.startY) ~/ 150);
 
-    if (nextPosition.x < allowedXStart - 75 ||
-        nextPosition.x > allowedXEnd + 75 ||
-        (nextPosition.y - allowedY).abs() > 75) {
+    if (tileY < 0 ||
+        tileY >= game.tileGrid.length ||
+        tileX < 0 ||
+        tileX >= game.tileGrid[tileY].length) {
       game.showGameOver();
       return;
     }
 
-    final tileX = ((nextPosition.x - game.startX) ~/ 150)
-        .clamp(0, game.tileGrid[0].length - 1);
-    if (game.tileGrid[0][tileX] == TileType.obstacle) {
-      print("Cannot move forward, obstacle detected");
+    TileType? tileType = game.tileGrid[tileY][tileX];
+    if (tileType == null || tileType == TileType.obstacle) {
+      game.showGameOver();
       return;
     }
 
+    // Proceed dengan pergerakan
     _movementCompleter?.completeError("Interrupted");
     targetPosition = nextPosition;
     _movementCompleter = Completer();
@@ -273,7 +369,6 @@ class Character extends SpriteComponent with HasGameRef<MyGame> {
   void update(double dt) {
     super.update(dt);
 
-    // Handle pergerakan
     if (targetPosition != null) {
       final direction = (targetPosition! - position).normalized();
       position += direction * speed * dt;
@@ -286,7 +381,6 @@ class Character extends SpriteComponent with HasGameRef<MyGame> {
       }
     }
 
-    // Handle rotasi
     if ((targetAngle - angle).abs() > 1e-3) {
       final angleDifference = targetAngle - angle;
       final rotationStep = rotationSpeed * dt;
