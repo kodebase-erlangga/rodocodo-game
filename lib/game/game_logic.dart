@@ -59,7 +59,7 @@ class MyGame extends FlameGame {
   late double startX;
   late double startY;
   late Vector2 startTileCenter;
-
+  bool isGameOver = false;
   int currentLevel = 1;
 
   @override
@@ -193,61 +193,21 @@ class MyGame extends FlameGame {
           }
         }
       }
-    } else if (currentLevel == 3) {
-      const rows = 3;
-      const columns = 5;
-      startX = (size.x - columns * tileSize) / 2;
-      startY = (size.y - rows * tileSize) / 2;
-
-      tileGrid = List.generate(rows, (row) => List.filled(columns, null));
-
-      for (int row = 0; row < rows; row++) {
-        for (int col = 0; col < columns; col++) {
-          TileType? type;
-          if (row == 0) {
-            if (col == 3 || col == 4) {
-              type = null;
-            } else {
-              type = col == 0
-                  ? TileType.start
-                  : col == columns - 1
-                      ? TileType.finish
-                      : TileType.normal;
-            }
-          } else if (row == 1 && (col == 2)) {
-            type = TileType.normal;
-          } else if (row == 2 && (col == 2 || col == 3 || col == 4)){
-            type = null;
-          }
-
-          if (type != null) {
-            final id = 'row${row}_col$col';
-            final position = Vector2(
-              startX + col * tileSize,
-              startY + row * tileSize,
-            );
-            tileGrid[row][col] = type;
-            final tile = FloorTile(id: id, type: type, position: position);
-            add(tile);
-
-            if (type == TileType.start) {
-              startTileCenter = position + Vector2(tileSize / 2, tileSize / 2);
-            }
-          }
-        }
-      }
     }
   }
 
   void showGameOver() {
+    isGameOver = true;
     overlays.add('gameOver');
   }
 
   Future<void> executeCommands(List<String> commands) async {
-    if (isExecuting) return;
+    if (isExecuting || isGameOver) return;
     isExecuting = true;
 
     for (final command in commands) {
+      if (isGameOver || isTargetReached) break;
+
       switch (command) {
         case 'MAJU':
           await _character.moveForward();
@@ -288,6 +248,7 @@ class MyGame extends FlameGame {
   }
 
   void resetGame() {
+    isGameOver = false;
     overlays.remove('gameOver');
     overlays.remove('congrats');
     isTargetReached = false;
@@ -323,6 +284,7 @@ class Character extends SpriteComponent with HasGameRef<MyGame> {
   }
 
   Future<void> moveForward() async {
+    if (gameRef.isGameOver) return;
     final game = gameRef;
     final direction = Vector2(cos(angle), sin(angle));
     final nextPosition = position + direction * moveDistance;
@@ -333,10 +295,15 @@ class Character extends SpriteComponent with HasGameRef<MyGame> {
     if (tileY < 0 ||
         tileY >= game.tileGrid.length ||
         tileX < 0 ||
-        tileX >= game.tileGrid[tileY].length) {
+        tileX >= game.tileGrid[tileY].length ||
+        game.tileGrid[tileY][tileX] == null ||
+        game.tileGrid[tileY][tileX] == TileType.obstacle) {
       game.showGameOver();
       return;
     }
+
+    _movementCompleter?.completeError("Interrupted");
+    _movementCompleter = Completer();
 
     TileType? tileType = game.tileGrid[tileY][tileX];
     if (tileType == null || tileType == TileType.obstacle) {
@@ -344,14 +311,20 @@ class Character extends SpriteComponent with HasGameRef<MyGame> {
       return;
     }
 
-    // Proceed dengan pergerakan
     _movementCompleter?.completeError("Interrupted");
     targetPosition = nextPosition;
     _movementCompleter = Completer();
     return _movementCompleter!.future;
   }
 
+  // void _cancelMovement() {
+  //   targetPosition = null;
+  //   _movementCompleter?.complete();
+  //   _movementCompleter = null;
+  // }
+
   Future<void> turnRight() {
+    if (gameRef.isGameOver) return Future.value();
     _rotationCompleter?.completeError("Interrupted");
     targetAngle = angle + 1.5708;
     _rotationCompleter = Completer();
@@ -359,6 +332,7 @@ class Character extends SpriteComponent with HasGameRef<MyGame> {
   }
 
   Future<void> turnLeft() {
+    if (gameRef.isGameOver) return Future.value();
     _rotationCompleter?.completeError("Interrupted");
     targetAngle = angle - 1.5708;
     _rotationCompleter = Completer();

@@ -17,9 +17,10 @@ class _GameScreenState extends State<GameScreen> {
   int moveCount = 0;
   int _currentStep = -1;
   bool _isExecuting = false;
+  final bool _isGameOver = false;
 
   void addCommand(String command) {
-    if (_isExecuting) return;
+    if (_isExecuting || _isGameOver) return;
 
     setState(() {
       commands.add(command);
@@ -28,7 +29,7 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Future<void> runCommands() async {
-    if (_isExecuting) return;
+    if (_isExecuting || _isGameOver) return;
 
     _isExecuting = true;
     for (int i = 0; i < commands.length; i++) {
@@ -43,20 +44,20 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  String _getButtonAsset(String commandType) {
-    if (_currentStep == -1) {
-      return 'assets/icons/${commandType.toLowerCase()}_off.svg';
-    }
+  void clearCommands() {
+    if (_isExecuting || _isGameOver) return;
 
-    final currentCommand =
-        _currentStep < commands.length ? commands[_currentStep] : '';
-    return 'assets/icons/${commandType.toLowerCase()}_${currentCommand == commandType ? 'on' : 'off'}.svg';
+    setState(() {
+      commands.clear();
+      moveCount = 0;
+      _currentStep = -1;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blueGrey[900],
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
           Column(
@@ -67,6 +68,47 @@ class _GameScreenState extends State<GameScreen> {
                 color: Colors.white,
                 child: Column(
                   children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildIconButton('assets/icons/run.svg', runCommands,
+                            isRunButton: true),
+                        Card(
+                          margin: const EdgeInsets.all(10),
+                          elevation: 5,
+                          child: Container(
+                            padding: const EdgeInsets.all(8.0),
+                            width: 700,
+                            height: 60,
+                            child: Column(
+                              children: [
+                                Wrap(
+                                  spacing: 8,
+                                  children:
+                                      commands.asMap().entries.map((entry) {
+                                    final index = entry.key;
+                                    final command = entry.value;
+                                    final isActive = index == _currentStep;
+
+                                    return Padding(
+                                      padding: const EdgeInsets.all(4.0),
+                                      child: SvgPicture.asset(
+                                        'assets/icons/${_getCommandAsset(command)}_${isActive ? 'on' : 'off'}.svg',
+                                        width: 35,
+                                        height: 35,
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        _buildImageButton(
+                            'assets/icons/trash.svg', clearCommands),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
                     Wrap(
                       spacing: 8,
                       children: [
@@ -76,61 +118,12 @@ class _GameScreenState extends State<GameScreen> {
                             () => addCommand('KIRI')),
                         _buildImageButton('assets/icons/right_off.svg',
                             () => addCommand('KANAN')),
-                        _buildIconButton('assets/icons/run.svg', runCommands,
-                            isRunButton: true),
+                        _buildImageButton('assets/icons/grab_off.svg',
+                            () => addCommand('AMBIL')),
+                        _buildImageButton('assets/icons/jump_off.svg',
+                            () => addCommand('LOMPAT')),
                       ],
                     ),
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 8,
-                      children: commands.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final command = entry.value;
-                        final isActive = index == _currentStep;
-
-                        return Padding(
-                          padding: const EdgeInsets.all(4.0),
-                          child: SvgPicture.asset(
-                            'assets/icons/${_getCommandAsset(command)}_${isActive ? 'on' : 'off'}.svg',
-                            width: 24,
-                            height: 24,
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                    // Wrap(
-                    //   spacing: 8,
-                    //   children: commands.map((command) {
-                    //     Widget iconWidget;
-                    //     switch (command) {
-                    //       case 'MAJU':
-                    //         iconWidget = SvgPicture.asset(
-                    //             'assets/icons/walk_off.svg',
-                    //             width: 24,
-                    //             height: 24);
-                    //         break;
-                    //       case 'KIRI':
-                    //         iconWidget = SvgPicture.asset(
-                    //             'assets/icons/left_off.svg',
-                    //             width: 24,
-                    //             height: 24);
-                    //         break;
-                    //       case 'KANAN':
-                    //         iconWidget = SvgPicture.asset(
-                    //             'assets/icons/right_off.svg',
-                    //             width: 24,
-                    //             height: 24);
-                    //         break;
-                    //       default:
-                    //         iconWidget = const Icon(Icons.error,
-                    //             color: Colors.black, size: 24);
-                    //     }
-                    //     return Padding(
-                    //       padding: const EdgeInsets.all(4.0),
-                    //       child: iconWidget,
-                    //     );
-                    //   }).toList(),
-                    // ),
                     const SizedBox(height: 10),
                     Text(
                       "Total Langkah: $moveCount",
@@ -144,22 +137,6 @@ class _GameScreenState extends State<GameScreen> {
               ),
             ],
           ),
-          if (_game.isTargetReached)
-            Positioned(
-              right: 20,
-              bottom: 20,
-              child: FloatingActionButton(
-                onPressed: () {
-                  setState(() {
-                    commands = [];
-                    _game.resetGame();
-                    moveCount = 0;
-                  });
-                },
-                backgroundColor: Colors.green,
-                child: const Icon(Icons.replay),
-              ),
-            ),
         ],
       ),
     );
@@ -173,21 +150,12 @@ class _GameScreenState extends State<GameScreen> {
         return 'left';
       case 'KANAN':
         return 'right';
+      case 'AMBIL':
+        return 'grab';
+      case 'LOMPAT':
+        return 'jump';
       default:
         return 'walk';
-    }
-  }
-
-  String _getAssetPath(String command) {
-    switch (command) {
-      case 'MAJU':
-        return 'assets/icons/walk_${_currentStep != -1 ? 'on' : 'off'}.svg';
-      case 'KIRI':
-        return 'assets/icons/left_${_currentStep != -1 ? 'on' : 'off'}.svg';
-      case 'KANAN':
-        return 'assets/icons/right_${_currentStep != -1 ? 'on' : 'off'}.svg';
-      default:
-        return 'assets/icons/walk_off.svg';
     }
   }
 
