@@ -78,7 +78,7 @@ class _GameScreenState extends State<GameScreen> {
                           elevation: 5,
                           child: Container(
                             padding: const EdgeInsets.all(8.0),
-                            width: 700,
+                            width: 800,
                             height: 60,
                             child: Column(
                               children: [

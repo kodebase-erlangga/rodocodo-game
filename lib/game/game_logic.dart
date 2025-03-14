@@ -120,7 +120,7 @@ class MyGame extends FlameGame {
 
     if (currentLevel == 1) {
       const rows = 1;
-      const columns = 4;
+      const columns = 3;
       startX = (size.x - columns * tileSize) / 2;
       startY = (size.y - tileSize) / 2;
 
@@ -151,6 +151,139 @@ class MyGame extends FlameGame {
         }
       }
     } else if (currentLevel == 2) {
+      const rows = 3;
+      const columns = 2;
+      startX = (size.x - columns * tileSize) / 2;
+      startY = (size.y - rows * tileSize) / 2;
+
+      tileGrid = List.generate(rows, (row) => List.filled(columns, null));
+
+      for (int row = 0; row < rows; row++) {
+        for (int col = 0; col < columns; col++) {
+          TileType? type;
+
+          if (row == 0) {
+            if (col == 0) {
+              type = TileType.start;
+            } else {
+              type = TileType.normal;
+            }
+          } else if (row == 1 && col == 1) {
+            type = TileType.normal;
+          } else if (row == 2 && col == 1) {
+            type = TileType.normal;
+          } else if (row == 2 && col == 0) {
+            type = TileType.finish;
+          }
+
+          if (type != null) {
+            final id = 'row${row}_col$col';
+            final position = Vector2(
+              startX + col * tileSize,
+              startY + row * tileSize,
+            );
+
+            tileGrid[row][col] = type;
+            final tile = FloorTile(id: id, type: type, position: position);
+            add(tile);
+
+            if (type == TileType.start) {
+              startTileCenter = position + Vector2(tileSize / 2, tileSize / 2);
+            }
+          }
+        }
+      }
+    } else if (currentLevel == 3) {
+      const rows = 3;
+      const columns = 3;
+      startX = (size.x - columns * tileSize) / 2;
+      startY = (size.y - rows * tileSize) / 2;
+
+      tileGrid = List.generate(rows, (row) => List.filled(columns, null));
+
+      for (int row = 0; row < rows; row++) {
+        for (int col = 0; col < columns; col++) {
+          TileType? type;
+
+          if (row == 0) {
+            if (col == 0) {
+              type = TileType.start;
+            } else if (row == 0 && col == 1) {
+              type = TileType.normal;
+            } else {
+              type = null;
+            }
+          } else if (row == 1 && col == 1) {
+            type = TileType.normal;
+          } else if (row == 2 && col == 1) {
+            type = TileType.normal;
+          } else if (row == 2 && col == 2) {
+            type = TileType.finish;
+          }
+
+          if (type != null) {
+            final id = 'row${row}_col$col';
+            final position = Vector2(
+              startX + col * tileSize,
+              startY + row * tileSize,
+            );
+
+            tileGrid[row][col] = type;
+            final tile = FloorTile(id: id, type: type, position: position);
+            add(tile);
+
+            if (type == TileType.start) {
+              startTileCenter = position + Vector2(tileSize / 2, tileSize / 2);
+            }
+          }
+        }
+      }
+    } else if (currentLevel == 4) {
+      const rows = 3;
+      const columns = 4;
+      startX = (size.x - columns * tileSize) / 2;
+      startY = (size.y - rows * tileSize) / 2;
+
+      tileGrid = List.generate(rows, (row) => List.filled(columns, null));
+
+      for (int row = 0; row < rows; row++) {
+        for (int col = 0; col < columns; col++) {
+          TileType? type;
+
+          if (row == 0) {
+            if (col == 0) {
+              type = TileType.start;
+            } else if (row == 0 && col == 1) {
+              type = TileType.normal;
+            } else {
+              type = null;
+            }
+          } else if (row == 1 && (col == 1 || col == 2 || col == 3)) {
+            type = TileType.normal;
+          } else if (row == 2 && (col == 0 || col == 1 || col == 2)) {
+            type = null;
+          } else if (row == 2 && col == 3) {
+            type = TileType.finish;
+          }
+
+          if (type != null) {
+            final id = 'row${row}_col$col';
+            final position = Vector2(
+              startX + col * tileSize,
+              startY + row * tileSize,
+            );
+
+            tileGrid[row][col] = type;
+            final tile = FloorTile(id: id, type: type, position: position);
+            add(tile);
+
+            if (type == TileType.start) {
+              startTileCenter = position + Vector2(tileSize / 2, tileSize / 2);
+            }
+          }
+        }
+      }
+    } else if (currentLevel == 5) {
       const rows = 2;
       const columns = 5;
       startX = (size.x - columns * tileSize) / 2;
@@ -175,6 +308,49 @@ class MyGame extends FlameGame {
             type = TileType.normal;
           } else {
             type = null;
+          }
+
+          if (type != null) {
+            final id = 'row${row}_col$col';
+            final position = Vector2(
+              startX + col * tileSize,
+              startY + row * tileSize,
+            );
+            tileGrid[row][col] = type;
+            final tile = FloorTile(id: id, type: type, position: position);
+            add(tile);
+
+            if (type == TileType.start) {
+              startTileCenter = position + Vector2(tileSize / 2, tileSize / 2);
+            }
+          }
+        }
+      }
+    } else if (currentLevel == 6) {
+      const rows = 3;
+      const columns = 6;
+      startX = (size.x - columns * tileSize) / 2;
+      startY = (size.y - rows * tileSize) / 2;
+
+      tileGrid = List.generate(rows, (row) => List.filled(columns, null));
+
+      for (int row = 0; row < rows; row++) {
+        for (int col = 0; col < columns; col++) {
+          TileType? type;
+          if (row == 0) {
+            if (col == 3 || col == 4) {
+              type = null;
+            } else {
+              type = col == 0
+                  ? TileType.start
+                  : col == columns - 1
+                      ? TileType.finish
+                      : TileType.normal;
+            }
+          } else if (row == 1 && (col == 2 || col == 4 || col == 5)) {
+            type = TileType.normal;
+          } else if (row == 2 && (col == 2 || col == 3 || col == 4)) {
+            type = TileType.normal;
           }
 
           if (type != null) {
