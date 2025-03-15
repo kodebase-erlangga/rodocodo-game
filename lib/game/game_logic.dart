@@ -6,6 +6,10 @@ import 'package:flutter/material.dart';
 
 enum TileType { normal, coin, obstacle, finish, start }
 
+bool isTargetReached = false;
+
+//int moveCount = 0;
+
 class FloorTile extends SpriteComponent with HasGameRef<MyGame> {
   final String id;
   TileType _type;
@@ -54,13 +58,15 @@ class FloorTile extends SpriteComponent with HasGameRef<MyGame> {
 class MyGame extends FlameGame {
   late Character _character;
   bool isExecuting = false;
-  bool isTargetReached = false;
+  // bool isTargetReached = false;
   List<List<TileType?>> tileGrid = [];
   late double startX;
   late double startY;
   late Vector2 startTileCenter;
   bool isGameOver = false;
   int currentLevel = 1;
+  int moveCount = 0;
+  Function()? naikLevel;
 
   @override
   Color backgroundColor() => Colors.white;
@@ -104,8 +110,30 @@ class MyGame extends FlameGame {
                 overlays.remove('congrats');
                 currentLevel++;
                 resetGame();
+                if (naikLevel != null) {
+                  naikLevel!();
+                }
               },
               child: const Text("Level Selanjutnya"),
+            ),
+          ],
+        ),
+      );
+    });
+    super.onAttach();
+
+    overlays.addEntry('gameFinished', (context, game) {
+      return Center(
+        child: AlertDialog(
+          title: const Text("Selamat!"),
+          content: const Text("Anda telah menamatkan game!"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                // Kembali ke menu utama
+                Navigator.of(context).pushReplacementNamed('/mainMenu');
+              },
+              child: const Text("Kembali ke Menu Utama"),
             ),
           ],
         ),
@@ -115,6 +143,7 @@ class MyGame extends FlameGame {
   }
 
   void _generateFloorTiles() {
+    MainAxisAlignment.center;
     const tileSize = 150.0;
     removeWhere((component) => component is FloorTile);
 
@@ -403,7 +432,10 @@ class MyGame extends FlameGame {
   }
 
   void checkTargetReached(Vector2 position) {
-    if (isTargetReached) return;
+    if (isTargetReached) {
+      // moveCount = 0;
+      return;
+    }
 
     final tileX = ((position.x - startX) ~/ 150);
     final tileY = ((position.y - startY) ~/ 150);
@@ -420,7 +452,11 @@ class MyGame extends FlameGame {
   }
 
   void showCongratsPopup() {
-    overlays.add('congrats');
+    if (currentLevel == 6) {
+      overlays.add('gameFinished');
+    } else {
+      overlays.add('congrats');
+    }
   }
 
   void resetGame() {
@@ -429,6 +465,7 @@ class MyGame extends FlameGame {
     overlays.remove('congrats');
     isTargetReached = false;
     isExecuting = false;
+    moveCount = 0;
 
     removeAll(children);
 
@@ -447,6 +484,8 @@ class Character extends SpriteComponent with HasGameRef<MyGame> {
   double targetAngle = 0;
   Completer<void>? _movementCompleter;
   Completer<void>? _rotationCompleter;
+  // bool isTargetReached = false;
+  // int moveCount = 0;
 
   Character() : super(size: Vector2.all(100), anchor: Anchor.center);
 
@@ -493,12 +532,6 @@ class Character extends SpriteComponent with HasGameRef<MyGame> {
     return _movementCompleter!.future;
   }
 
-  // void _cancelMovement() {
-  //   targetPosition = null;
-  //   _movementCompleter?.complete();
-  //   _movementCompleter = null;
-  // }
-
   Future<void> turnRight() {
     if (gameRef.isGameOver) return Future.value();
     _rotationCompleter?.completeError("Interrupted");
@@ -518,6 +551,10 @@ class Character extends SpriteComponent with HasGameRef<MyGame> {
   @override
   void update(double dt) {
     super.update(dt);
+
+    // if(isTargetReached) {
+    //   moveCou
+    // }
 
     if (targetPosition != null) {
       final direction = (targetPosition! - position).normalized();

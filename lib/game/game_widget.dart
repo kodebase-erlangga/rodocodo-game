@@ -19,6 +19,16 @@ class _GameScreenState extends State<GameScreen> {
   bool _isExecuting = false;
   final bool _isGameOver = false;
 
+  void resetMoveCount() {
+    setState(() {
+      moveCount = 0;
+    });
+  }
+
+  void onLevelUp() {
+    resetMoveCount();
+  }
+
   void addCommand(String command) {
     if (_isExecuting || _isGameOver) return;
 
@@ -36,7 +46,16 @@ class _GameScreenState extends State<GameScreen> {
       setState(() => _currentStep = i);
       await _game.executeCommands([commands[i]]);
       await Future.delayed(const Duration(milliseconds: 500));
+
+      if (_game.isGameOver) {
+        setState(() {
+          _isExecuting = false;
+        });
+        resetMoveCount();
+        return;
+      }
     }
+
     setState(() {
       commands = [];
       _currentStep = -1;
@@ -55,8 +74,41 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _game.naikLevel = () {
+      setState(() {
+        moveCount = 0;
+      });
+    };
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Level ${_game.currentLevel}",
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              "Total Langkah: ${moveCount}",
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.blueAccent,
+      ),
       backgroundColor: Colors.white,
       body: Stack(
         children: [
@@ -123,14 +175,6 @@ class _GameScreenState extends State<GameScreen> {
                         _buildImageButton('assets/icons/jump_off.svg',
                             () => addCommand('LOMPAT')),
                       ],
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      "Total Langkah: $moveCount",
-                      style: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),

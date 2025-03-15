@@ -1,14 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:rodocodo_game/game/mainPage.dart';
 import 'game/game_widget.dart';
-
-// void main() {
-//   WidgetsFlutterBinding.ensureInitialized();
-//   SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft]);
-//   SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
-//       overlays: [SystemUiOverlay.bottom]);
-//   runApp(const MyApp());
-// }
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +18,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: GameScreen(),
+      home: MainMenuScreen(),
+      initialRoute: '/mainMenu',
+      routes: {
+        '/mainMenu': (context) => const MainMenuScreen(),
+        '/game': (context) => const GameScreen(),
+      },
     );
   }
 }
