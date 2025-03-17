@@ -6,10 +6,6 @@ import 'package:flutter/material.dart';
 
 enum TileType { normal, coin, obstacle, finish, start }
 
-bool isTargetReached = false;
-
-//int moveCount = 0;
-
 class FloorTile extends SpriteComponent with HasGameRef<MyGame> {
   final String id;
   TileType _type;
@@ -65,8 +61,10 @@ class MyGame extends FlameGame {
   late Vector2 startTileCenter;
   bool isGameOver = false;
   int currentLevel = 1;
-  int moveCount = 0;
+  // int moveCount = 0;
   Function()? naikLevel;
+  int Function()? getMoveCount;
+  bool isTargetReached = false;
 
   @override
   Color backgroundColor() => Colors.white;
@@ -79,61 +77,211 @@ class MyGame extends FlameGame {
     add(_character);
   }
 
+  int getOptimalSteps() {
+    switch (currentLevel) {
+      case 1:
+        return 2;
+      case 2:
+        return 6;
+      case 3:
+        return 6;
+      case 4:
+        return 8;
+      case 5:
+        return 9;
+      case 6:
+        return 14;
+      default:
+        return 0;
+    }
+  }
+
+  int calculateStars() {
+    int optimal = getOptimalSteps();
+    int currentMoveCount = getMoveCount?.call() ?? 0;
+    int difference = (currentMoveCount - optimal).abs();
+
+    if (difference == 0) return 3;
+    if (difference <= 2) return 2;
+    if (difference <= 5) return 1;
+    return 1;
+  }
+
   @override
   void onAttach() {
-    overlays.addEntry('gameOver', (context, game) {
-      return Center(
-        child: AlertDialog(
-          title: const Text("Game Over!"),
-          content: const Text("Karakter keluar dari jalur!"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                overlays.remove('gameOver');
-                resetGame();
-              },
-              child: const Text("Coba Lagi"),
-            ),
-          ],
-        ),
-      );
-    });
-
     overlays.addEntry('congrats', (context, game) {
-      return Center(
-        child: AlertDialog(
-          title: const Text("Selamat!"),
-          content: const Text("Anda berhasil mencapai finish!"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                overlays.remove('congrats');
-                currentLevel++;
-                resetGame();
-                if (naikLevel != null) {
-                  naikLevel!();
-                }
-              },
-              child: const Text("Level Selanjutnya"),
-            ),
-          ],
+  final myGame = game as MyGame;
+  final stars = myGame.calculateStars();
+  final moveCount = myGame.getMoveCount?.call() ?? 0;
+
+  return Center(
+    child: AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Center(
+        child: Text(
+          stars == 3 ? "Selamat! 🎉" : "Yahh! 😞",
+          style: TextStyle(
+            fontSize: 24,
+            color: stars == 3 ? Colors.green : Colors.orange,
+            fontWeight: FontWeight.bold
+          ),
         ),
-      );
-    });
-    super.onAttach();
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            stars == 3 
+              ? "Kamu menemukan solusi optimal!"
+              : "Kamu belum menemukan solusi optimal!",
+            style: TextStyle(fontSize: 16)),
+          SizedBox(height: 15),
+          Text(
+            stars == 3
+              ? "Menggunakan $moveCount perintah"
+              : stars == 2
+                  ? "Kamu menggunakan $moveCount perintah"
+                  : "Ayo Coba Lagi! Kamu menggunakan $moveCount perintah",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: stars == 3 ? Colors.green : Colors.orange
+            ),
+          ),
+          SizedBox(height: 15),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              3,
+              (index) => Icon(
+                Icons.star,
+                color: index < stars ? Colors.amber : Colors.grey[300],
+                size: 40,
+              )),
+          ),
+          SizedBox(height: 20),
+        ],
+      ),
+      actions: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                onPressed: () {
+                  myGame.overlays.remove('congrats');
+                  myGame.resetGame();
+                },
+                child: Text(
+                  "Coba Lagi",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                onPressed: () {
+                  myGame.overlays.remove('congrats');
+                  myGame.currentLevel++;
+                  myGame.resetGame();
+                  if (myGame.naikLevel != null) myGame.naikLevel!();
+                },
+                child: Text(
+                  "Level Selanjutnya",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+});
 
     overlays.addEntry('gameFinished', (context, game) {
+      final myGame = game as MyGame;
+      final stars = myGame.calculateStars();
+      // final optimal = myGame.getOptimalSteps();
+
       return Center(
-        child: AlertDialog(
-          title: const Text("Selamat!"),
-          content: const Text("Anda telah menamatkan game!"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                // Kembali ke menu utama
-                Navigator.of(context).pushReplacementNamed('/mainMenu');
-              },
-              child: const Text("Kembali ke Menu Utama"),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                3,
+                (index) => Icon(
+                  Icons.star,
+                  color: index < stars ? Colors.amber : Colors.grey[300],
+                  size: 40,
+                ),
+              ),
+            ),
+            AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: const Center(
+                child: Text(
+                  "LUAR BIASA! 🏆",
+                  style: TextStyle(
+                    fontSize: 24,
+                    color: Colors.green,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    "Anda telah menamatkan semua level!",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 15),
+                  Text(
+                    "Kamu menemukan solusi optimal, menggunakan ${myGame.getMoveCount?.call() ?? 0} perintah",
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
+              actions: [
+                Center(
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    onPressed: () =>
+                        Navigator.of(context).pushReplacementNamed('/mainMenu'),
+                    child: const Text(
+                      "KE MENU UTAMA",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -423,8 +571,6 @@ class MyGame extends FlameGame {
         case 'KIRI':
           await _character.turnLeft();
           break;
-        default:
-          print("Perintah tidak dikenali: $command");
       }
       checkTargetReached(_character.position);
     }
@@ -443,7 +589,9 @@ class MyGame extends FlameGame {
     if (tileY < 0 ||
         tileY >= tileGrid.length ||
         tileX < 0 ||
-        tileX >= tileGrid[tileY].length) return;
+        tileX >= tileGrid[tileY].length) {
+      return;
+    }
 
     if (tileGrid[tileY][tileX] == TileType.finish) {
       isTargetReached = true;
@@ -465,7 +613,6 @@ class MyGame extends FlameGame {
     overlays.remove('congrats');
     isTargetReached = false;
     isExecuting = false;
-    moveCount = 0;
 
     removeAll(children);
 
@@ -484,8 +631,6 @@ class Character extends SpriteComponent with HasGameRef<MyGame> {
   double targetAngle = 0;
   Completer<void>? _movementCompleter;
   Completer<void>? _rotationCompleter;
-  // bool isTargetReached = false;
-  // int moveCount = 0;
 
   Character() : super(size: Vector2.all(100), anchor: Anchor.center);
 
@@ -499,6 +644,8 @@ class Character extends SpriteComponent with HasGameRef<MyGame> {
   }
 
   Future<void> moveForward() async {
+    print('Attempting to move forward...');
+    print('New position: ${position.x}, ${position.y}');
     if (gameRef.isGameOver) return;
     final game = gameRef;
     final direction = Vector2(cos(angle), sin(angle));

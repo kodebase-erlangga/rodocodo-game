@@ -34,7 +34,6 @@ class _GameScreenState extends State<GameScreen> {
 
     setState(() {
       commands.add(command);
-      moveCount++;
     });
   }
 
@@ -42,16 +41,18 @@ class _GameScreenState extends State<GameScreen> {
     if (_isExecuting || _isGameOver) return;
 
     _isExecuting = true;
+    setState(() => moveCount = 0);
+
     for (int i = 0; i < commands.length; i++) {
-      setState(() => _currentStep = i);
+      setState(() {
+        _currentStep = i;
+        moveCount++;
+      });
       await _game.executeCommands([commands[i]]);
       await Future.delayed(const Duration(milliseconds: 500));
 
       if (_game.isGameOver) {
-        setState(() {
-          _isExecuting = false;
-        });
-        resetMoveCount();
+        setState(() => _isExecuting = false);
         return;
       }
     }
@@ -76,11 +77,14 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void initState() {
     super.initState();
+
     _game.naikLevel = () {
       setState(() {
         moveCount = 0;
       });
     };
+
+    _game.getMoveCount = () => moveCount;
   }
 
   @override
@@ -99,7 +103,7 @@ class _GameScreenState extends State<GameScreen> {
               ),
             ),
             Text(
-              "Total Langkah: ${moveCount}",
+              "Total Langkah: $moveCount",
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 16,
@@ -131,11 +135,14 @@ class _GameScreenState extends State<GameScreen> {
                           child: Container(
                             padding: const EdgeInsets.all(8.0),
                             width: 800,
-                            height: 60,
+                            height: commands.length > 15
+                                ? 60 + ((commands.length / 15).ceil() - 1) * 50
+                                : 60,
                             child: Column(
                               children: [
                                 Wrap(
                                   spacing: 8,
+                                  runSpacing: 8,
                                   children:
                                       commands.asMap().entries.map((entry) {
                                     final index = entry.key;
@@ -170,10 +177,6 @@ class _GameScreenState extends State<GameScreen> {
                             () => addCommand('KIRI')),
                         _buildImageButton('assets/icons/right_off.svg',
                             () => addCommand('KANAN')),
-                        _buildImageButton('assets/icons/grab_off.svg',
-                            () => addCommand('AMBIL')),
-                        _buildImageButton('assets/icons/jump_off.svg',
-                            () => addCommand('LOMPAT')),
                       ],
                     ),
                   ],
@@ -194,10 +197,6 @@ class _GameScreenState extends State<GameScreen> {
         return 'left';
       case 'KANAN':
         return 'right';
-      case 'AMBIL':
-        return 'grab';
-      case 'LOMPAT':
-        return 'jump';
       default:
         return 'walk';
     }
