@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:rodocodo_game/game/game_widget.dart';
+// import 'package:rodocodo_game/game/game_widget.dart';
+import 'package:rodocodo_game/opsiLevel.dart';
 
 class MainMenuScreen extends StatelessWidget {
   const MainMenuScreen({super.key});
@@ -32,7 +33,7 @@ class MainMenuScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => GameScreen()),
+                  MaterialPageRoute(builder: (context) => OpsiLevel()),
                 );
               },
               style: ElevatedButton.styleFrom(
@@ -42,7 +43,7 @@ class MainMenuScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              child: Text("Play"),
+              child: Text("Mulai"),
             ),
           ],
         ),

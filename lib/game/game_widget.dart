@@ -7,7 +7,6 @@ class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _GameScreenState createState() => _GameScreenState();
 }
 
@@ -17,7 +16,8 @@ class _GameScreenState extends State<GameScreen> {
   int moveCount = 0;
   int _currentStep = -1;
   bool _isExecuting = false;
-  final bool _isGameOver = false;
+  bool _isGameOver = false;
+  int _lastExecutedIndex = 0; // Tambahkan variabel ini
 
   void resetMoveCount() {
     setState(() {
@@ -26,7 +26,11 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void onLevelUp() {
-    resetMoveCount();
+    setState(() {
+      moveCount = 0;
+      commands.clear();
+      _lastExecutedIndex = 0;
+    });
   }
 
   void addCommand(String command) {
@@ -41,24 +45,36 @@ class _GameScreenState extends State<GameScreen> {
     if (_isExecuting || _isGameOver) return;
 
     _isExecuting = true;
-    setState(() => moveCount = 0);
 
-    for (int i = 0; i < commands.length; i++) {
+    int start = _lastExecutedIndex;
+    int end = commands.length;
+
+    for (int i = start; i < end; i++) {
       setState(() {
         _currentStep = i;
         moveCount++;
       });
+
       await _game.executeCommands([commands[i]]);
       await Future.delayed(const Duration(milliseconds: 500));
 
       if (_game.isGameOver) {
-        setState(() => _isExecuting = false);
+        setState(() {
+          _isExecuting = false;
+          commands.clear();
+          _lastExecutedIndex = 0;
+        });
         return;
       }
+
+      setState(() {
+        _currentStep = -1;
+        _isExecuting = false;
+      });
     }
 
     setState(() {
-      commands = [];
+      _lastExecutedIndex = end;
       _currentStep = -1;
       _isExecuting = false;
     });
@@ -71,6 +87,7 @@ class _GameScreenState extends State<GameScreen> {
       commands.clear();
       moveCount = 0;
       _currentStep = -1;
+      _lastExecutedIndex = 0;
     });
   }
 
@@ -81,6 +98,8 @@ class _GameScreenState extends State<GameScreen> {
     _game.naikLevel = () {
       setState(() {
         moveCount = 0;
+        commands.clear();
+        _lastExecutedIndex = 0;
       });
     };
 

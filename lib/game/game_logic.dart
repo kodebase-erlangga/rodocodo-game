@@ -4,7 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
-enum TileType { normal, coin, obstacle, finish, start }
+enum TileType { normal, finish, start, normal_landscape }
 
 class FloorTile extends SpriteComponent with HasGameRef<MyGame> {
   final String id;
@@ -33,19 +33,16 @@ class FloorTile extends SpriteComponent with HasGameRef<MyGame> {
   Future<void> _updateSprite() async {
     switch (_type) {
       case TileType.start:
-        sprite = await gameRef.loadSprite('start.jpg');
+        sprite = await gameRef.loadSprite('start.png');
         break;
       case TileType.normal:
-        sprite = await gameRef.loadSprite('lantai.jpg');
+        sprite = await gameRef.loadSprite('lantai.png');
         break;
-      case TileType.coin:
-        sprite = await gameRef.loadSprite('koin.jpg');
-        break;
-      case TileType.obstacle:
-        sprite = await gameRef.loadSprite('granat.jpg');
+      case TileType.normal_landscape:
+        sprite = await gameRef.loadSprite('lantai_landscape.png');
         break;
       case TileType.finish:
-        sprite = await gameRef.loadSprite('finish.jpg');
+        sprite = await gameRef.loadSprite('finish.png');
         break;
     }
   }
@@ -54,14 +51,12 @@ class FloorTile extends SpriteComponent with HasGameRef<MyGame> {
 class MyGame extends FlameGame {
   late Character _character;
   bool isExecuting = false;
-  // bool isTargetReached = false;
   List<List<TileType?>> tileGrid = [];
   late double startX;
   late double startY;
   late Vector2 startTileCenter;
   bool isGameOver = false;
   int currentLevel = 1;
-  // int moveCount = 0;
   Function()? naikLevel;
   int Function()? getMoveCount;
   bool isTargetReached = false;
@@ -110,112 +105,131 @@ class MyGame extends FlameGame {
   @override
   void onAttach() {
     overlays.addEntry('congrats', (context, game) {
-  final myGame = game as MyGame;
-  final stars = myGame.calculateStars();
-  final moveCount = myGame.getMoveCount?.call() ?? 0;
+      final myGame = game as MyGame;
+      final stars = myGame.calculateStars();
+      final moveCount = myGame.getMoveCount?.call() ?? 0;
 
-  return Center(
-    child: AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: Center(
-        child: Text(
-          stars == 3 ? "Selamat! 🎉" : "Yahh! 😞",
-          style: TextStyle(
-            fontSize: 24,
-            color: stars == 3 ? Colors.green : Colors.orange,
-            fontWeight: FontWeight.bold
-          ),
-        ),
-      ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            stars == 3 
-              ? "Kamu menemukan solusi optimal!"
-              : "Kamu belum menemukan solusi optimal!",
-            style: TextStyle(fontSize: 16)),
-          SizedBox(height: 15),
-          Text(
-            stars == 3
-              ? "Menggunakan $moveCount perintah"
-              : stars == 2
-                  ? "Kamu menggunakan $moveCount perintah"
-                  : "Ayo Coba Lagi! Kamu menggunakan $moveCount perintah",
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: stars == 3 ? Colors.green : Colors.orange
+      return Center(
+        child: AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Center(
+            child: Text(
+              stars == 3 ? "Selamat! 🎉" : "Yahh! 😞",
+              style: TextStyle(
+                  fontSize: 24,
+                  color: stars == 3 ? Colors.green : Colors.orange,
+                  fontWeight: FontWeight.bold),
             ),
           ),
-          SizedBox(height: 15),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(
-              3,
-              (index) => Icon(
-                Icons.star,
-                color: index < stars ? Colors.amber : Colors.grey[300],
-                size: 40,
-              )),
-          ),
-          SizedBox(height: 20),
-        ],
-      ),
-      actions: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              TextButton(
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                onPressed: () {
-                  myGame.overlays.remove('congrats');
-                  myGame.resetGame();
-                },
-                child: Text(
-                  "Coba Lagi",
-                  style: TextStyle(color: Colors.white),
-                ),
+              Text(
+                  stars == 3
+                      ? "Kamu menemukan solusi optimal!"
+                      : "Kamu belum menemukan solusi optimal!",
+                  style: TextStyle(fontSize: 16)),
+              SizedBox(height: 15),
+              Text(
+                stars == 3
+                    ? "Menggunakan $moveCount perintah"
+                    : stars == 2
+                        ? "Kamu menggunakan $moveCount perintah"
+                        : "Ayo Coba Lagi! Kamu menggunakan $moveCount perintah",
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: stars == 3 ? Colors.green : Colors.orange),
               ),
-              TextButton(
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                onPressed: () {
-                  myGame.overlays.remove('congrats');
-                  myGame.currentLevel++;
-                  myGame.resetGame();
-                  if (myGame.naikLevel != null) myGame.naikLevel!();
-                },
-                child: Text(
-                  "Level Selanjutnya",
-                  style: TextStyle(color: Colors.white),
-                ),
+              SizedBox(height: 15),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                    3,
+                    (index) => Icon(
+                          Icons.star,
+                          color:
+                              index < stars ? Colors.amber : Colors.grey[300],
+                          size: 40,
+                        )),
               ),
+              SizedBox(height: 20),
             ],
           ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    onPressed: () {
+                      myGame.overlays.remove('congrats');
+                      myGame.resetGame();
+                    },
+                    child: Text(
+                      "Coba Lagi",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    onPressed: () {
+                      myGame.overlays.remove('congrats');
+                      myGame.currentLevel++;
+                      myGame.resetGame();
+                      if (myGame.naikLevel != null) myGame.naikLevel!();
+                    },
+                    child: Text(
+                      "Level Selanjutnya",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-      ],
-    ),
-  );
-});
+      );
+    });
+
+    overlays.addEntry('gameOver', (context, game) {
+      return Center(
+        child: AlertDialog(
+          title: const Text("Game Over!"),
+          content: const Text("Karakter keluar dari jalur!"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                overlays.remove('gameOver');
+                resetGame();
+              },
+              child: const Text("Coba Lagi"),
+            ),
+          ],
+        ),
+      );
+    });
 
     overlays.addEntry('gameFinished', (context, game) {
       final myGame = game as MyGame;
       final stars = myGame.calculateStars();
-      // final optimal = myGame.getOptimalSteps();
 
       return Center(
         child: Column(
@@ -302,7 +316,7 @@ class MyGame extends FlameGame {
       startY = (size.y - tileSize) / 2;
 
       tileGrid =
-          List.generate(rows, (row) => List.filled(columns, TileType.normal));
+          List.generate(rows, (row) => List.filled(columns, TileType.normal_landscape));
 
       for (int row = 0; row < rows; row++) {
         for (int col = 0; col < columns; col++) {
@@ -316,7 +330,7 @@ class MyGame extends FlameGame {
               ? TileType.start
               : col == columns - 1
                   ? TileType.finish
-                  : TileType.normal;
+                  : TileType.normal_landscape;
 
           tileGrid[row][col] = type;
           final tile = FloorTile(id: id, type: type, position: position);
@@ -632,7 +646,7 @@ class Character extends SpriteComponent with HasGameRef<MyGame> {
   Completer<void>? _movementCompleter;
   Completer<void>? _rotationCompleter;
 
-  Character() : super(size: Vector2.all(100), anchor: Anchor.center);
+  Character() : super(size: Vector2.all(80), anchor: Anchor.center);
 
   @override
   Future<void> onLoad() async {
@@ -644,34 +658,36 @@ class Character extends SpriteComponent with HasGameRef<MyGame> {
   }
 
   Future<void> moveForward() async {
-    print('Attempting to move forward...');
-    print('New position: ${position.x}, ${position.y}');
     if (gameRef.isGameOver) return;
     final game = gameRef;
+
     final direction = Vector2(cos(angle), sin(angle));
     final nextPosition = position + direction * moveDistance;
 
-    final tileX = ((nextPosition.x - game.startX) ~/ 150);
-    final tileY = ((nextPosition.y - game.startY) ~/ 150);
+    final tileX = ((nextPosition.x - game.startX) / 150).floor();
+    final tileY = ((nextPosition.y - game.startY) / 150).floor();
 
     if (tileY < 0 ||
         tileY >= game.tileGrid.length ||
         tileX < 0 ||
         tileX >= game.tileGrid[tileY].length ||
-        game.tileGrid[tileY][tileX] == null ||
-        game.tileGrid[tileY][tileX] == TileType.obstacle) {
+        game.tileGrid[tileY][tileX] == null) {
       game.showGameOver();
       return;
     }
+
+    final snappedX = game.startX + (tileX * 150) + 75;
+    final snappedY = game.startY + (tileY * 150) + 75;
+    targetPosition = Vector2(snappedX, snappedY);
 
     _movementCompleter?.completeError("Interrupted");
     _movementCompleter = Completer();
 
-    TileType? tileType = game.tileGrid[tileY][tileX];
-    if (tileType == null || tileType == TileType.obstacle) {
-      game.showGameOver();
-      return;
-    }
+    // TileType? tileType = game.tileGrid[tileY][tileX];
+    // if (tileType == null || tileType == TileType.obstacle) {
+    //   game.showGameOver();
+    //   return;
+    // }
 
     _movementCompleter?.completeError("Interrupted");
     targetPosition = nextPosition;
@@ -695,13 +711,35 @@ class Character extends SpriteComponent with HasGameRef<MyGame> {
     return _rotationCompleter!.future;
   }
 
+  void checkCurrentPosition() {
+    final game = gameRef;
+
+    final tileX = ((position.x - game.startX) / 150).floor();
+    final tileY = ((position.y - game.startY) / 150).floor();
+
+    // bool isOutOfBounds = tileY < 0 ||
+    //     tileY >= game.tileGrid.length ||
+    //     tileX < 0 ||
+    //     tileX >= game.tileGrid[tileY].length;
+
+    // bool isOnInvalidTile = !isOutOfBounds &&
+    //     (game.tileGrid[tileY][tileX] == null ||
+    //         game.tileGrid[tileY][tileX] == TileType.obstacle);
+
+    // if (isOutOfBounds || isOnInvalidTile) {
+    //   game.showGameOver();
+    //   return;
+    // }
+
+    if (game.tileGrid[tileY][tileX] == TileType.finish) {
+      game.checkTargetReached(position);
+    }
+  }
+
   @override
   void update(double dt) {
     super.update(dt);
-
-    // if(isTargetReached) {
-    //   moveCou
-    // }
+    checkCurrentPosition();
 
     if (targetPosition != null) {
       final direction = (targetPosition! - position).normalized();
