@@ -19,11 +19,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: MainMenuScreen(),
-      initialRoute: '/mainMenu',
-      routes: {
-        '/mainMenu': (context) => const MainMenuScreen(),
-        '/game': (context) => const GameScreen(),
-      },
     );
   }
 }

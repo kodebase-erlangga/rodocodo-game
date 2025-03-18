@@ -1,23 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flame/game.dart';
+import 'package:rodocodo_game/levelSelection.dart';
 import 'game_logic.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class GameScreen extends StatefulWidget {
-  const GameScreen({super.key});
+  final int initialLevel;
+  final Function(int)? onLevelCompleted;
+
+  const GameScreen({
+    super.key,
+    required this.initialLevel,
+    this.onLevelCompleted,
+  });
 
   @override
+  // ignore: library_private_types_in_public_api
   _GameScreenState createState() => _GameScreenState();
 }
 
 class _GameScreenState extends State<GameScreen> {
-  final MyGame _game = MyGame();
   List<String> commands = [];
   int moveCount = 0;
   int _currentStep = -1;
   bool _isExecuting = false;
-  bool _isGameOver = false;
-  int _lastExecutedIndex = 0; // Tambahkan variabel ini
+  final bool _isGameOver = false;
+  int _lastExecutedIndex = 0;
+  late MyGame _game;
 
   void resetMoveCount() {
     setState(() {
@@ -94,6 +103,8 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void initState() {
     super.initState();
+    _game = MyGame(initialLevel: widget.initialLevel);
+    _game.onLevelCompleted = widget.onLevelCompleted;
 
     _game.naikLevel = () {
       setState(() {
@@ -102,7 +113,6 @@ class _GameScreenState extends State<GameScreen> {
         _lastExecutedIndex = 0;
       });
     };
-
     _game.getMoveCount = () => moveCount;
   }
 
@@ -131,6 +141,15 @@ class _GameScreenState extends State<GameScreen> {
           ],
         ),
         backgroundColor: Colors.blueAccent,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => LevelSelectionScreen()),
+            );
+          },
+        ),
       ),
       backgroundColor: Colors.white,
       body: Stack(

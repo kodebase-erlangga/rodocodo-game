@@ -1,8 +1,12 @@
+// ignore_for_file: constant_identifier_names
+
 import 'dart:async';
 import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:rodocodo_game/game/mainPage.dart';
 
 enum TileType { normal, finish, start, normal_landscape }
 
@@ -56,10 +60,14 @@ class MyGame extends FlameGame {
   late double startY;
   late Vector2 startTileCenter;
   bool isGameOver = false;
-  int currentLevel = 1;
   Function()? naikLevel;
   int Function()? getMoveCount;
   bool isTargetReached = false;
+  int currentLevel = 1;
+  Function(int)? onLevelCompleted;
+
+  MyGame({int initialLevel = 1, this.onLevelCompleted})
+      : currentLevel = initialLevel;
 
   @override
   Color backgroundColor() => Colors.white;
@@ -163,43 +171,50 @@ class MyGame extends FlameGame {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  TextButton(
-                    style: TextButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => MainMenuScreen()),
+                          );
+                        },
+                        child: SvgPicture.asset(
+                          'assets/icons/home.svg',
+                          width: 50,
+                          height: 50,
+                        ),
                       ),
-                    ),
-                    onPressed: () {
-                      myGame.overlays.remove('congrats');
-                      myGame.resetGame();
-                    },
-                    child: Text(
-                      "Coba Lagi",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                  TextButton(
-                    style: TextButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                      SizedBox(width: 20),
+                      GestureDetector(
+                        onTap: () {
+                          myGame.overlays.remove('congrats');
+                          myGame.resetGame();
+                        },
+                        child: SvgPicture.asset(
+                          'assets/icons/restart.svg',
+                          width: 50,
+                          height: 50,
+                        ),
                       ),
-                    ),
-                    onPressed: () {
-                      myGame.overlays.remove('congrats');
-                      myGame.currentLevel++;
-                      myGame.resetGame();
-                      if (myGame.naikLevel != null) myGame.naikLevel!();
-                    },
-                    child: Text(
-                      "Level Selanjutnya",
-                      style: TextStyle(color: Colors.white),
-                    ),
+                      SizedBox(width: 20),
+                      GestureDetector(
+                        onTap: () {
+                          myGame.overlays.remove('congrats');
+                          myGame.currentLevel++;
+                          myGame.resetGame();
+                          if (myGame.naikLevel != null) myGame.naikLevel!();
+                        },
+                        child: SvgPicture.asset(
+                          'assets/icons/next.svg',
+                          width: 50,
+                          height: 50,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -212,15 +227,67 @@ class MyGame extends FlameGame {
     overlays.addEntry('gameOver', (context, game) {
       return Center(
         child: AlertDialog(
-          title: const Text("Game Over!"),
-          content: const Text("Karakter keluar dari jalur!"),
+          backgroundColor: Colors.white, // Latar belakang putih
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20), // Membuat sudut membulat
+          ),
+          title: const Text(
+            "GAME OVER!",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.bold,
+              color: Colors.redAccent,
+            ),
+          ),
+          content: const Text(
+            "Ohh noo! Keluar dari jalur!",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+            ),
+          ),
           actions: [
-            TextButton(
-              onPressed: () {
-                overlays.remove('gameOver');
-                resetGame();
-              },
-              child: const Text("Coba Lagi"),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    overlays.remove('gameOver');
+                    resetGame();
+                  },
+                  child: Column(
+                    children: [
+                      SvgPicture.asset(
+                        'assets/icons/restart.svg',
+                        width: 40,
+                        height: 40,
+                      ),
+                    ],
+                  ),
+                ),
+
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (context) => MainMenuScreen()),
+                      (route) => false, // Menghapus semua halaman sebelumnya
+                    );
+                  },
+                  child: Column(
+                    children: [
+                      SvgPicture.asset(
+                        'assets/icons/home.svg',
+                        width: 40,
+                        height: 40,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -315,8 +382,8 @@ class MyGame extends FlameGame {
       startX = (size.x - columns * tileSize) / 2;
       startY = (size.y - tileSize) / 2;
 
-      tileGrid =
-          List.generate(rows, (row) => List.filled(columns, TileType.normal_landscape));
+      tileGrid = List.generate(
+          rows, (row) => List.filled(columns, TileType.normal_landscape));
 
       for (int row = 0; row < rows; row++) {
         for (int col = 0; col < columns; col++) {
@@ -618,6 +685,9 @@ class MyGame extends FlameGame {
       overlays.add('gameFinished');
     } else {
       overlays.add('congrats');
+    }
+    if (onLevelCompleted != null) {
+      onLevelCompleted!(calculateStars());
     }
   }
 
