@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:rodocodo_game/game/mainPage.dart';
-import 'game/game_widget.dart';
+
+final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();

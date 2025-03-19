@@ -1,5 +1,5 @@
-// levelTutorial.dart
 import 'package:flutter/material.dart';
+import 'package:rodocodo_game/main.dart'; // Ensure this imports the routeObserver
 import 'package:shared_preferences/shared_preferences.dart';
 import 'game/game_widget.dart';
 
@@ -10,7 +10,7 @@ class LevelSelectionScreen extends StatefulWidget {
   State<LevelSelectionScreen> createState() => _LevelSelectionScreenState();
 }
 
-class _LevelSelectionScreenState extends State<LevelSelectionScreen> {
+class _LevelSelectionScreenState extends State<LevelSelectionScreen> with RouteAware {
   final PageController _pageController = PageController(initialPage: 0);
   int _currentPage = 0;
   late Future<Map<int, int>> _starsFuture;
@@ -19,6 +19,28 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> {
   void initState() {
     super.initState();
     _starsFuture = _loadStars();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Subscribe to the RouteObserver
+    routeObserver.subscribe(this, ModalRoute.of(context)! as PageRoute);
+  }
+
+  @override
+  void dispose() {
+    // Unsubscribe from the RouteObserver
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    // Called when the user returns to this screen
+    setState(() {
+      _starsFuture = _loadStars(); // Refresh the stars data
+    });
   }
 
   Future<Map<int, int>> _loadStars() async {
@@ -44,7 +66,7 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> {
       elevation: 4,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
-      ), // Tambahkan penutup kurung sini
+      ),
       child: InkWell(
         borderRadius: BorderRadius.circular(15),
         onTap: isUnlocked
@@ -110,9 +132,9 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> {
       body: FutureBuilder<Map<int, int>>(
         future: _starsFuture,
         builder: (context, snapshot) {
-          if (!snapshot.hasData)
+          if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
-
+          }
           final stars = snapshot.data!;
           return Stack(
             children: [
@@ -138,7 +160,6 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> {
                   );
                 },
               ),
-              // Navigation Arrows
               if (_currentPage > 0)
                 Positioned(
                   left: 20,

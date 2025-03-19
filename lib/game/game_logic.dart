@@ -4,9 +4,12 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
+import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:rodocodo_game/game/game_widget.dart';
 import 'package:rodocodo_game/game/mainPage.dart';
+import 'package:rodocodo_game/levelSelection.dart';
 
 enum TileType { normal, finish, start, normal_landscape }
 
@@ -55,6 +58,7 @@ class FloorTile extends SpriteComponent with HasGameRef<MyGame> {
 class MyGame extends FlameGame {
   late Character _character;
   bool isExecuting = false;
+  bool _isExecutingCommands = false;
   List<List<TileType?>> tileGrid = [];
   late double startX;
   late double startY;
@@ -65,6 +69,9 @@ class MyGame extends FlameGame {
   bool isTargetReached = false;
   int currentLevel = 1;
   Function(int)? onLevelCompleted;
+  AudioPlayer? _startEnginePlayer;
+  bool _isFirstCommand = true;
+  Function()? clearCommands;
 
   MyGame({int initialLevel = 1, this.onLevelCompleted})
       : currentLevel = initialLevel;
@@ -74,6 +81,8 @@ class MyGame extends FlameGame {
 
   @override
   Future<void> onLoad() async {
+    _startEnginePlayer = await FlameAudio.play('startEngine.mp3');
+
     _generateFloorTiles();
     _character = Character();
     _character.position = startTileCenter;
@@ -179,7 +188,7 @@ class MyGame extends FlameGame {
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => MainMenuScreen()),
+                                builder: (context) => LevelSelectionScreen()),
                           );
                         },
                         child: SvgPicture.asset(
@@ -193,6 +202,7 @@ class MyGame extends FlameGame {
                         onTap: () {
                           myGame.overlays.remove('congrats');
                           myGame.resetGame();
+                          if (myGame.naikLevel != null) myGame.naikLevel!();
                         },
                         child: SvgPicture.asset(
                           'assets/icons/restart.svg',
@@ -207,6 +217,15 @@ class MyGame extends FlameGame {
                           myGame.currentLevel++;
                           myGame.resetGame();
                           if (myGame.naikLevel != null) myGame.naikLevel!();
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => GameScreen(
+                                initialLevel: myGame.currentLevel,
+                                onLevelCompleted: myGame.onLevelCompleted,
+                              ),
+                            ),
+                          );
                         },
                         child: SvgPicture.asset(
                           'assets/icons/next.svg',
@@ -227,9 +246,9 @@ class MyGame extends FlameGame {
     overlays.addEntry('gameOver', (context, game) {
       return Center(
         child: AlertDialog(
-          backgroundColor: Colors.white, // Latar belakang putih
+          backgroundColor: const Color.fromARGB(255, 251, 97, 148),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20), // Membuat sudut membulat
+            borderRadius: BorderRadius.circular(20),
           ),
           title: const Text(
             "GAME OVER!",
@@ -268,7 +287,6 @@ class MyGame extends FlameGame {
                     ],
                   ),
                 ),
-
                 GestureDetector(
                   onTap: () {
                     Navigator.pushAndRemoveUntil(
@@ -354,10 +372,15 @@ class MyGame extends FlameGame {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    onPressed: () =>
-                        Navigator.of(context).pushReplacementNamed('/mainMenu'),
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => MainMenuScreen()),
+                      );
+                    },
                     child: const Text(
-                      "KE MENU UTAMA",
+                      "MENU UTAMA",
                       style: TextStyle(color: Colors.white),
                     ),
                   ),
@@ -372,7 +395,6 @@ class MyGame extends FlameGame {
   }
 
   void _generateFloorTiles() {
-    MainAxisAlignment.center;
     const tileSize = 150.0;
     removeWhere((component) => component is FloorTile);
 
@@ -631,6 +653,9 @@ class MyGame extends FlameGame {
   }
 
   void showGameOver() {
+    FlameAudio.bgm.stop();
+    FlameAudio.play('gameOver.mp3');
+
     isGameOver = true;
     overlays.add('gameOver');
   }
@@ -638,31 +663,42 @@ class MyGame extends FlameGame {
   Future<void> executeCommands(List<String> commands) async {
     if (isExecuting || isGameOver) return;
     isExecuting = true;
+    _isExecutingCommands = true;
 
     for (final command in commands) {
       if (isGameOver || isTargetReached) break;
 
-      switch (command) {
-        case 'MAJU':
-          await _character.moveForward();
-          break;
-        case 'KANAN':
-          await _character.turnRight();
-          break;
-        case 'KIRI':
-          await _character.turnLeft();
-          break;
+      if (_isFirstCommand) {
+        _startEnginePlayer?.stop();
+        _isFirstCommand = false;
       }
-      checkTargetReached(_character.position);
+
+      AudioPlayer? gasPlayer;
+      try {
+        gasPlayer = await FlameAudio.loop('gas.mp3');
+
+        switch (command) {
+          case 'MAJU':
+            await _character.moveForward();
+            break;
+          case 'KANAN':
+            await _character.turnRight();
+            break;
+          case 'KIRI':
+            await _character.turnLeft();
+            break;
+        }
+      } finally {
+        gasPlayer?.stop();
+      }
     }
+    _isExecutingCommands = false;
+    checkTargetReached(_character.position);
     isExecuting = false;
   }
 
   void checkTargetReached(Vector2 position) {
-    if (isTargetReached) {
-      // moveCount = 0;
-      return;
-    }
+    if (isTargetReached || _isExecutingCommands) return;
 
     final tileX = ((position.x - startX) ~/ 150);
     final tileY = ((position.y - startY) ~/ 150);
@@ -681,6 +717,9 @@ class MyGame extends FlameGame {
   }
 
   void showCongratsPopup() {
+    FlameAudio.bgm.stop();
+    FlameAudio.play('success.mp3');
+
     if (currentLevel == 6) {
       overlays.add('gameFinished');
     } else {
@@ -704,6 +743,10 @@ class MyGame extends FlameGame {
     _character = Character();
     _character.position = startTileCenter;
     add(_character);
+
+    FlameAudio.bgm.stop();
+    FlameAudio.play('startEngine.mp3');
+    _isFirstCommand = true;
   }
 }
 
@@ -751,15 +794,6 @@ class Character extends SpriteComponent with HasGameRef<MyGame> {
     targetPosition = Vector2(snappedX, snappedY);
 
     _movementCompleter?.completeError("Interrupted");
-    _movementCompleter = Completer();
-
-    // TileType? tileType = game.tileGrid[tileY][tileX];
-    // if (tileType == null || tileType == TileType.obstacle) {
-    //   game.showGameOver();
-    //   return;
-    // }
-
-    _movementCompleter?.completeError("Interrupted");
     targetPosition = nextPosition;
     _movementCompleter = Completer();
     return _movementCompleter!.future;
@@ -787,22 +821,17 @@ class Character extends SpriteComponent with HasGameRef<MyGame> {
     final tileX = ((position.x - game.startX) / 150).floor();
     final tileY = ((position.y - game.startY) / 150).floor();
 
-    // bool isOutOfBounds = tileY < 0 ||
-    //     tileY >= game.tileGrid.length ||
-    //     tileX < 0 ||
-    //     tileX >= game.tileGrid[tileY].length;
+    bool isOutOfBounds = tileY < 0 ||
+        tileY >= game.tileGrid.length ||
+        tileX < 0 ||
+        tileX >= game.tileGrid[tileY].length;
 
-    // bool isOnInvalidTile = !isOutOfBounds &&
-    //     (game.tileGrid[tileY][tileX] == null ||
-    //         game.tileGrid[tileY][tileX] == TileType.obstacle);
+    bool isOnInvalidTile =
+        !isOutOfBounds && (game.tileGrid[tileY][tileX] == null);
 
-    // if (isOutOfBounds || isOnInvalidTile) {
-    //   game.showGameOver();
-    //   return;
-    // }
-
-    if (game.tileGrid[tileY][tileX] == TileType.finish) {
-      game.checkTargetReached(position);
+    if (isOutOfBounds || isOnInvalidTile) {
+      game.showGameOver();
+      return;
     }
   }
 

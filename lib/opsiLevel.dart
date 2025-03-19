@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:rodocodo_game/game/game_widget.dart';
+// import 'package:rodocodo_game/game/game_widget.dart';
 import 'package:rodocodo_game/levelSelection.dart';
 
 class OpsiLevel extends StatelessWidget {
@@ -13,7 +13,7 @@ class OpsiLevel extends StatelessWidget {
           return Center(
             child: GestureDetector(
               onTap: () {
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
                       builder: (context) => LevelSelectionScreen()),

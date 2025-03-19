@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flame/game.dart';
-import 'package:rodocodo_game/levelSelection.dart';
 import 'game_logic.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flame_audio/flame_audio.dart';
 
 class GameScreen extends StatefulWidget {
   final int initialLevel;
@@ -27,6 +27,14 @@ class _GameScreenState extends State<GameScreen> {
   final bool _isGameOver = false;
   int _lastExecutedIndex = 0;
   late MyGame _game;
+  bool isRunning = true;
+
+  @override
+  void dispose() {
+    FlameAudio.bgm.stop();
+    // FlameAudio.stopAll();
+    super.dispose();
+  }
 
   void resetMoveCount() {
     setState(() {
@@ -43,10 +51,13 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void addCommand(String command) {
-    if (_isExecuting || _isGameOver) return;
+    if (_isExecuting || _isGameOver || commands.length >= 28) return;
+
+    FlameAudio.play('command.mp3');
 
     setState(() {
       commands.add(command);
+      moveCount = commands.length;
     });
   }
 
@@ -61,7 +72,6 @@ class _GameScreenState extends State<GameScreen> {
     for (int i = start; i < end; i++) {
       setState(() {
         _currentStep = i;
-        moveCount++;
       });
 
       await _game.executeCommands([commands[i]]);
@@ -71,26 +81,26 @@ class _GameScreenState extends State<GameScreen> {
         setState(() {
           _isExecuting = false;
           commands.clear();
+          moveCount = 0;
           _lastExecutedIndex = 0;
         });
         return;
       }
 
       setState(() {
-        _currentStep = -1;
-        _isExecuting = false;
+        // moveCount++;
+        _lastExecutedIndex = i + 1;
       });
     }
 
     setState(() {
-      _lastExecutedIndex = end;
       _currentStep = -1;
       _isExecuting = false;
     });
   }
 
   void clearCommands() {
-    if (_isExecuting || _isGameOver) return;
+    if (_isExecuting || _isGameOver || commands.isEmpty) return;
 
     setState(() {
       commands.clear();
@@ -105,7 +115,7 @@ class _GameScreenState extends State<GameScreen> {
     super.initState();
     _game = MyGame(initialLevel: widget.initialLevel);
     _game.onLevelCompleted = widget.onLevelCompleted;
-
+    _game.clearCommands = clearCommands;
     _game.naikLevel = () {
       setState(() {
         moveCount = 0;
@@ -144,10 +154,7 @@ class _GameScreenState extends State<GameScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => LevelSelectionScreen()),
-            );
+            Navigator.pop(context);
           },
         ),
       ),
@@ -156,7 +163,19 @@ class _GameScreenState extends State<GameScreen> {
         children: [
           Column(
             children: [
-              Expanded(child: GameWidget(game: _game)),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Flexible(
+                        child: AspectRatio(
+                          aspectRatio: 1,
+                          child: GameWidget(game: _game),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               Container(
                 padding: const EdgeInsets.all(8.0),
                 color: Colors.white,
@@ -242,7 +261,7 @@ class _GameScreenState extends State<GameScreen> {
 
   Widget _buildImageButton(String assetPath, VoidCallback onPressed) {
     return IconButton(
-      onPressed: onPressed,
+      onPressed: _isExecuting ? null : onPressed,
       icon: SvgPicture.asset(
         assetPath,
         width: 50,
@@ -256,7 +275,7 @@ class _GameScreenState extends State<GameScreen> {
   Widget _buildIconButton(String assetPath, VoidCallback onPressed,
       {bool isRunButton = false}) {
     return IconButton(
-      onPressed: onPressed,
+      onPressed: _isExecuting ? null : onPressed,
       icon: SvgPicture.asset(
         assetPath,
         width: 50,
