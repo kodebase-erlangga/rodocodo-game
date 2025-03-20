@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 // import 'package:rodocodo_game/game/game_widget.dart';
 import 'package:rodocodo_game/opsiLevel.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class MainMenuScreen extends StatelessWidget {
   const MainMenuScreen({super.key});
@@ -14,38 +15,84 @@ class MainMenuScreen extends StatelessWidget {
         height: double.infinity,
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("assets/images/background.jpg"),
+            image: AssetImage("assets/images/background.png"),
             fit: BoxFit.cover,
           ),
         ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Text(
-              "Path Finder GT",
-              style: TextStyle(
-                fontSize: 40,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => OpsiLevel()),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                textStyle: TextStyle(fontSize: 24),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => OpsiLevel()),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(horizontal: 45, vertical: 20),
+                    textStyle: TextStyle(fontSize: 24),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    backgroundColor: Color(0xFF36D206),
+                    foregroundColor: Colors.white,
+                    side: BorderSide(color: Colors.black, width: 4),
+                    elevation: 6,
+                  ),
+                  child: Text(
+                    "Mulai",
+                    style: GoogleFonts.carterOne(
+                      fontSize: 24,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withOpacity(0.5), // Shadow color
+                          offset: Offset(3, 3), // Shadow position (X, Y)
+                          blurRadius: 5, // How much to blur the shadow
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-              child: Text("Mulai"),
+                SizedBox(width: 30),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => OpsiLevel()),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(horizontal: 45, vertical: 20),
+                    textStyle: TextStyle(fontSize: 24),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    side: BorderSide(color: Colors.black, width: 4),
+                    elevation: 3,
+                  ),
+                  child: Text(
+                    "Keluar",
+                    style: GoogleFonts.carterOne(
+                      fontSize: 24,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withOpacity(0.5), // Shadow color
+                          offset: Offset(3, 3), // Shadow position (X, Y)
+                          blurRadius: 5, // How much to blur the shadow
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
+            SizedBox(height: 40)
           ],
         ),
       ),

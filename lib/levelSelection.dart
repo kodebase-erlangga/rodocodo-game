@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rodocodo_game/main.dart'; // Ensure this imports the routeObserver
+import 'package:rodocodo_game/opsiLevel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'game/game_widget.dart';
 
@@ -10,7 +11,8 @@ class LevelSelectionScreen extends StatefulWidget {
   State<LevelSelectionScreen> createState() => _LevelSelectionScreenState();
 }
 
-class _LevelSelectionScreenState extends State<LevelSelectionScreen> with RouteAware {
+class _LevelSelectionScreenState extends State<LevelSelectionScreen>
+    with RouteAware {
   final PageController _pageController = PageController(initialPage: 0);
   int _currentPage = 0;
   late Future<Map<int, int>> _starsFuture;
@@ -128,6 +130,15 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with RouteA
       appBar: AppBar(
         title: const Text('Pilih Level'),
         backgroundColor: Colors.blueAccent,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => OpsiLevel()),
+            );
+          },
+        ),
       ),
       body: FutureBuilder<Map<int, int>>(
         future: _starsFuture,
