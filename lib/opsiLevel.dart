@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:rodocodo_game/game/mainPage.dart';
-import 'package:rodocodo_game/levelSelection.dart';
+import 'package:rodocodo_game/Level.dart';
 
 class OpsiLevel extends StatelessWidget {
   const OpsiLevel({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width <= 806;
+
+    debugPrint("Screen Width: $screenSize, isTablet: $isSmallScreen");
+
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -17,219 +22,151 @@ class OpsiLevel extends StatelessWidget {
             image: AssetImage("assets/images/background_kota.jpg"),
             fit: BoxFit.cover,
             colorFilter: ColorFilter.mode(
-              Colors.black.withOpacity(0.5), // Atur opasitas sesuai kebutuhan
+              Colors.black.withOpacity(0.5),
               BlendMode.darken,
             ),
           ),
         ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => LevelSelectionScreen(),
-                        ),
-                      );
-                    },
-                    child: Stack(
-                      children: [
-                        Card(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          clipBehavior: Clip.antiAlias,
-                          child: SizedBox(
-                            width: 350,
-                            height: 400,
-                            child: Image.asset(
-                              "assets/images/tutorial.png",
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          top: 10,
-                          left: 0,
-                          right: 0,
-                          child: Center(
-                            child: Center(
-                              child: Text(
-                                "Tutorial",
-                                style: GoogleFonts.carterOne(
-                                  fontSize: 40,
-                                  color: Colors.white,
-                                  shadows: [
-                                    Shadow(
-                                      // ignore: deprecated_member_use
-                                      color: Colors.black.withOpacity(1.0),
-                                      offset: Offset(3, 3),
-                                      blurRadius: 5,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(width: 30),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => LevelSelectionScreen(),
-                        ),
-                      );
-                    },
-                    child: Stack(
-                      children: [
-                        Card(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          clipBehavior: Clip.antiAlias,
-                          child: SizedBox(
-                            width: 350,
-                            height: 400,
-                            child: Image.asset(
-                              "assets/images/panik.jpg",
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          top: 10,
-                          left: 0,
-                          right: 0,
-                          child: Center(
-                            child: Center(
-                              child: Text(
-                                "Fast Track",
-                                style: GoogleFonts.carterOne(
-                                  fontSize: 40,
-                                  color: Colors.white,
-                                  shadows: [
-                                    Shadow(
-                                      color: Colors.black.withOpacity(0.5),
-                                      offset: Offset(3, 3),
-                                      blurRadius: 5,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(width: 30),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => LevelSelectionScreen(),
-                        ),
-                      );
-                    },
-                    child: Stack(
-                      children: [
-                        Card(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          clipBehavior: Clip.antiAlias,
-                          child: SizedBox(
-                            width: 350,
-                            height: 400,
-                            child: Image.asset(
-                              "assets/images/getMoney.jpg",
-                              fit: BoxFit.cover, // Membuat gambar memenuhi Card
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          top: 10,
-                          left: 0,
-                          right: 0,
-                          child: Center(
-                            child: Center(
-                              child: Text(
-                                "Get Money",
-                                style: GoogleFonts.carterOne(
-                                  fontSize: 40,
-                                  color: Colors.white,
-                                  shadows: [
-                                    Shadow(
-                                      color: Colors.black.withOpacity(0.5),
-                                      offset: Offset(3, 3),
-                                      blurRadius: 5,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+        child: Stack(
+          children: [
+            Positioned(
+              top: isSmallScreen ? 20 : 40,
+              left: isSmallScreen ? 15 : 30,
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: SvgPicture.asset(
+                  'assets/icons/back.svg',
+                  width: isSmallScreen ? 40 : 40,
+                  height: isSmallScreen ? 40 : 40,
+                ),
               ),
-              SizedBox(height: 30),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MainMenuScreen(),
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 45, vertical: 20),
-                      textStyle: TextStyle(fontSize: 24),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+            ),
+            Center(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: isSmallScreen ? screenSize.width * 0.9 : 1200,
                       ),
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                      side: BorderSide(color: Colors.black, width: 4),
-                      elevation: 3,
-                    ),
-                    child: Text(
-                      "Menu Utama",
-                      style: GoogleFonts.carterOne(
-                        fontSize: 24,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black.withOpacity(0.5),
-                            offset: Offset(3, 3),
-                            blurRadius: 5,
-                          ),
+                      child: Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: isSmallScreen ? 10 : 20,
+                        runSpacing: isSmallScreen ? 15 : 20,
+                        children: [
+                          _buildLevelCard("Tutorial",
+                              "assets/images/tutorial.png", context),
+                          _buildLevelCard(
+                              "Fast Track", "assets/images/panik.jpg", context),
+                          _buildLevelCard("Get Money",
+                              "assets/images/getMoney.jpg", context),
                         ],
                       ),
                     ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLevelCard(String title, String imagePath, BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width <= 806;
+
+    double cardWidth = isSmallScreen ? screenSize.width * 0.23 : 300;
+    double cardHeight = cardWidth * 1.3;
+
+    final titleFontSize = isSmallScreen ? 16.0 : 40.0;
+    final lockIconSize = isSmallScreen ? 35.0 : 90.0;
+    final bool isLocked = title != "Tutorial";
+
+    return GestureDetector(
+      onTap: () {
+        if (isLocked) {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) => AlertDialog(
+              title: Text("Waduh"),
+              content: Text("Permainan sedang dalam perbaikan!"),
+              actions: [
+                TextButton(
+                  child: Text("Kembali"),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => Level()),
+          );
+        }
+      },
+      child: Container(
+        width: cardWidth,
+        height: cardHeight,
+        margin: EdgeInsets.all(isSmallScreen ? 5.0 : 10.0),
+        child: Stack(
+          children: [
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              clipBehavior: Clip.antiAliasWithSaveLayer,
+              child: SizedBox(
+                width: cardWidth,
+                height: cardHeight,
+                child: Image.asset(
+                  imagePath,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            if (isLocked)
+              Positioned.fill(
+                child: Container(
+                  // ignore: deprecated_member_use
+                  color: Colors.black.withOpacity(0.6),
+                  child: Center(
+                    child: SvgPicture.asset(
+                      'assets/icons/gembok.svg',
+                      width: lockIconSize,
+                      height: lockIconSize,
+                      // ignore: deprecated_member_use
+                      color: Colors.white,
+                    ),
                   ),
-                ],
-              )
-            ],
-          ),
+                ),
+              ),
+            Positioned(
+              top: isSmallScreen ? 8.0 : 15.0,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Text(
+                  title,
+                  style: GoogleFonts.carterOne(
+                    fontSize: titleFontSize,
+                    color: Colors.white,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black.withOpacity(0.5),
+                        offset: Offset(2, 2),
+                        blurRadius: 3,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

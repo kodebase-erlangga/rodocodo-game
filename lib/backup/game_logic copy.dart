@@ -17,7 +17,7 @@ enum TileType {
   normal_landscape,
   belok_noltiga,
   belok_sembilannol,
-  belok_enamsembilan,
+  belok_tigasembilan,
   belok_tigaenam
 }
 
@@ -70,11 +70,11 @@ class FloorTile extends SpriteComponent with HasGameRef<MyGame> {
       case TileType.belok_tigaenam:
         sprite = await gameRef.loadSprite('belok_tigaenam.png');
         break;
-      case TileType.belok_enamsembilan:
-        sprite = await gameRef.loadSprite('belok_enamsembilan.png');
-        break;
       case TileType.belok_sembilannol:
         sprite = await gameRef.loadSprite('belok_sembilannol.png');
+        break;
+      case TileType.belok_tigasembilan:
+        sprite = await gameRef.loadSprite('belok_tigasembilan.png');
         break;
       case TileType.normal_landscape:
         sprite = await gameRef.loadSprite('lantai_landscape.png');
@@ -179,10 +179,9 @@ class MyGame extends FlameGame {
             child: Text(
               stars == 3 ? "Selamat! 🎉" : "Yahh! 😞",
               style: TextStyle(
-                fontSize: 24,
-                color: stars == 3 ? Colors.green : Colors.orange,
-                fontWeight: FontWeight.bold,
-              ),
+                  fontSize: 24,
+                  color: stars == 3 ? Colors.green : Colors.orange,
+                  fontWeight: FontWeight.bold),
             ),
           ),
           content: Column(
@@ -209,13 +208,13 @@ class MyGame extends FlameGame {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(
-                  3,
-                  (index) => Icon(
-                    Icons.star,
-                    color: index < stars ? Colors.amber : Colors.grey[300],
-                    size: 40,
-                  ),
-                ),
+                    3,
+                    (index) => Icon(
+                          Icons.star,
+                          color:
+                              index < stars ? Colors.amber : Colors.grey[300],
+                          size: 40,
+                        )),
               ),
               SizedBox(height: 20),
             ],
@@ -468,7 +467,7 @@ class MyGame extends FlameGame {
             if (col == 0) {
               type = TileType.start;
             } else {
-              type = TileType.belok_enamsembilan;
+              type = TileType.belok_tigasembilan;
             }
           } else if (row == 1 && col == 1) {
             type = TileType.normal;
@@ -511,7 +510,7 @@ class MyGame extends FlameGame {
             if (col == 0) {
               type = TileType.start;
             } else if (row == 0 && col == 1) {
-              type = TileType.belok_enamsembilan;
+              type = TileType.belok_tigasembilan;
             } else {
               type = null;
             }
@@ -556,16 +555,14 @@ class MyGame extends FlameGame {
             if (col == 0) {
               type = TileType.start;
             } else if (row == 0 && col == 1) {
-              type = TileType.belok_enamsembilan;
+              type = TileType.belok_tigasembilan;
             } else {
               type = null;
             }
+          } else if (row == 1 && (col == 2 || col == 3)) {
+            type = TileType.normal;
           } else if (row == 1 && (col == 1)) {
             type = TileType.belok_noltiga;
-          } else if (row == 1 && (col == 2)) {
-            type = TileType.normal_landscape;
-          } else if (row == 1 && (col == 3)) {
-            type = TileType.belok_enamsembilan;
           } else if (row == 2 && (col == 0 || col == 1 || col == 2)) {
             type = null;
           } else if (row == 2 && col == 3) {
@@ -601,23 +598,17 @@ class MyGame extends FlameGame {
         for (int col = 0; col < columns; col++) {
           TileType? type;
           if (row == 0) {
-            if (row == 0 && col == 0) {
-              type = TileType.start;
-            } else if (row == 0 && col == 1) {
-              type = TileType.normal_landscape;
-            } else if (row == 0 && col == 2) {
-              type = TileType.belok_enamsembilan;
-            } else if (row == 0 && col == 3) {
+            if (col == 3) {
               type = null;
             } else {
-              type = TileType.finish;
+              type = col == 0
+                  ? TileType.start
+                  : col == columns - 1
+                      ? TileType.finish
+                      : TileType.normal;
             }
-          } else if (row == 1 && col == 2) {
-            type = TileType.belok_noltiga;
-          } else if (row == 1 && col == 3) {
-            type = TileType.normal_landscape;
-          } else if (row == 1 && col == 4) {
-            type = TileType.belok_sembilannol;
+          } else if (row == 1 && (col == 2 || col == 3 || col == 4)) {
+            type = TileType.normal;
           } else {
             type = null;
           }
@@ -652,27 +643,17 @@ class MyGame extends FlameGame {
           if (row == 0) {
             if (col == 3 || col == 4) {
               type = null;
-            } else if (col == 0) {
-              type = TileType.start;
-            } else if (col == 1) {
-              type = TileType.normal_landscape;
-            } else if (col == 2) {
-              type = TileType.belok_enamsembilan;
             } else {
-              type = TileType.finish;
+              type = col == 0
+                  ? TileType.start
+                  : col == columns - 1
+                      ? TileType.finish
+                      : TileType.normal;
             }
-          } else if (row == 1 && col == 2) {
+          } else if (row == 1 && (col == 2 || col == 4 || col == 5)) {
             type = TileType.normal;
-          } else if (row == 1 && col == 4) {
-            type = TileType.belok_tigaenam;
-          } else if (row == 1 && col == 5) {
-            type = TileType.belok_sembilannol;
-          } else if (row == 2 && col == 2) {
-            type = TileType.belok_noltiga;
-          } else if (row == 2 && col == 3) {
-            type = TileType.normal_landscape;
-          } else if (row == 2 && col == 4) {
-            type = TileType.belok_sembilannol;
+          } else if (row == 2 && (col == 2 || col == 3 || col == 4)) {
+            type = TileType.normal;
           }
 
           if (type != null) {

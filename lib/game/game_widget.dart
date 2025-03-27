@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flame/game.dart';
+import 'package:rodocodo_game/Level.dart';
 import 'game_logic.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flame_audio/flame_audio.dart';
@@ -7,11 +8,13 @@ import 'package:flame_audio/flame_audio.dart';
 class GameScreen extends StatefulWidget {
   final int initialLevel;
   final Function(int)? onLevelCompleted;
+  final Function(bool)? onTargetReached;
 
   const GameScreen({
     super.key,
     required this.initialLevel,
     this.onLevelCompleted,
+    this.onTargetReached,
   });
 
   @override
@@ -32,7 +35,6 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void dispose() {
     FlameAudio.bgm.stop();
-    // FlameAudio.stopAll();
     super.dispose();
   }
 
@@ -88,7 +90,6 @@ class _GameScreenState extends State<GameScreen> {
       }
 
       setState(() {
-        // moveCount++;
         _lastExecutedIndex = i + 1;
       });
     }
@@ -100,7 +101,10 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void clearCommands() {
-    if (_isExecuting || _isGameOver || commands.isEmpty) return;
+    if (_isExecuting ||
+        _isGameOver ||
+        commands.isEmpty ||
+        _game.isTargetReached) return;
 
     setState(() {
       commands.clear();
@@ -108,6 +112,10 @@ class _GameScreenState extends State<GameScreen> {
       _currentStep = -1;
       _lastExecutedIndex = 0;
     });
+
+    if (!_game.isTargetReached) {
+      _game.resetGame();
+    }
   }
 
   @override
@@ -128,33 +136,45 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final ukuranLayar = MediaQuery.of(context).size;
+    final isSmallScreen = ukuranLayar.width >= 806;
+
+    debugPrint("Screen Width: $ukuranLayar, isTablet: $isSmallScreen");
+
     return Scaffold(
       appBar: AppBar(
-        title: Column(
+        toolbarHeight: 40,
+        title: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               "Level ${_game.currentLevel}",
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 20,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: isSmallScreen ? 18 : 17,
                 fontWeight: FontWeight.bold,
               ),
             ),
+            const Spacer(),
             Text(
               "Total Langkah: $moveCount",
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.white,
-                fontSize: 16,
+                fontSize: isSmallScreen ? 18 : 17,
               ),
             ),
           ],
         ),
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: const Color(0xffFE7B0A),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            Navigator.pop(context);
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => Level(),
+              ),
+            );
           },
         ),
       ),
@@ -163,79 +183,119 @@ class _GameScreenState extends State<GameScreen> {
         children: [
           Column(
             children: [
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Flexible(
-                        child: AspectRatio(
-                          aspectRatio: 1,
-                          child: GameWidget(game: _game),
+              SizedBox(height: 5),
+              Row(
+                children: [
+                  if (!isSmallScreen)
+                    Column(
+                      spacing: 8,
+                      children: [
+                        _buildControlButton(
+                          'assets/icons/walk_off.svg',
+                          () => addCommand('MAJU'),
+                          size: isSmallScreen ? 50 : 30,
                         ),
+                        _buildControlButton(
+                          'assets/icons/left_off.svg',
+                          () => addCommand('KIRI'),
+                          size: isSmallScreen ? 50 : 30,
+                        ),
+                        _buildControlButton(
+                          'assets/icons/right_off.svg',
+                          () => addCommand('KANAN'),
+                          size: isSmallScreen ? 50 : 30,
+                        ),
+                      ],
+                    ),
+                  Expanded(
+                    flex: isSmallScreen ? 6 : 7,
+                    child: Padding(
+                      padding: EdgeInsets.all(isSmallScreen ? 8 : 25),
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width *
+                            (isSmallScreen ? 0.8 : 0.6),
+                        height: MediaQuery.of(context).size.height *
+                            (isSmallScreen ? 0.5 : 0.6),
+                        child: GameWidget(game: _game),
                       ),
-                    ],
+                    ),
                   ),
-                ),
+                ],
+              ),
               Container(
-                padding: const EdgeInsets.all(8.0),
+                padding: EdgeInsets.all(isSmallScreen ? 8 : 0),
                 color: Colors.white,
                 child: Column(
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        _buildIconButton('assets/icons/run.svg', runCommands,
-                            isRunButton: true),
+                        _buildControlButton(
+                          'assets/icons/run.svg',
+                          runCommands,
+                          size: isSmallScreen ? 40 : 30,
+                        ),
                         Card(
-                          margin: const EdgeInsets.all(10),
+                          margin: EdgeInsets.all(isSmallScreen ? 10 : 3),
                           elevation: 5,
                           child: Container(
-                            padding: const EdgeInsets.all(8.0),
-                            width: 800,
+                            padding: EdgeInsets.all(isSmallScreen ? 8 : 8),
+                            width:
+                                isSmallScreen ? ukuranLayar.width * 0.6 : 500,
                             height: commands.length > 15
                                 ? 60 + ((commands.length / 15).ceil() - 1) * 50
-                                : 60,
-                            child: Column(
-                              children: [
-                                Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
-                                  children:
-                                      commands.asMap().entries.map((entry) {
-                                    final index = entry.key;
-                                    final command = entry.value;
-                                    final isActive = index == _currentStep;
+                                : isSmallScreen
+                                    ? 60
+                                    : 40,
+                            child: ListView(
+                              scrollDirection: Axis.horizontal,
+                              children: commands.asMap().entries.map((entry) {
+                                final index = entry.key;
+                                final command = entry.value;
+                                final isActive = index == _currentStep;
 
-                                    return Padding(
-                                      padding: const EdgeInsets.all(4.0),
-                                      child: SvgPicture.asset(
-                                        'assets/icons/${_getCommandAsset(command)}_${isActive ? 'on' : 'off'}.svg',
-                                        width: 35,
-                                        height: 35,
-                                      ),
-                                    );
-                                  }).toList(),
-                                ),
-                              ],
+                                return Padding(
+                                  padding:
+                                      EdgeInsets.all(isSmallScreen ? 4 : 2),
+                                  child: SvgPicture.asset(
+                                    'assets/icons/${_getCommandAsset(command)}_${isActive ? 'on' : 'off'}.svg',
+                                    width: isSmallScreen ? 35 : 30,
+                                    height: isSmallScreen ? 35 : 30,
+                                  ),
+                                );
+                              }).toList(),
                             ),
                           ),
                         ),
-                        _buildImageButton(
-                            'assets/icons/trash.svg', clearCommands),
+                        _buildControlButton(
+                          'assets/icons/trash.svg',
+                          clearCommands,
+                          size: isSmallScreen ? 40 : 40,
+                        ),
                       ],
                     ),
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 8,
-                      children: [
-                        _buildImageButton('assets/icons/walk_off.svg',
-                            () => addCommand('MAJU')),
-                        _buildImageButton('assets/icons/left_off.svg',
-                            () => addCommand('KIRI')),
-                        _buildImageButton('assets/icons/right_off.svg',
-                            () => addCommand('KANAN')),
-                      ],
-                    ),
+                    SizedBox(height: isSmallScreen ? 10 : 0),
+                    if (isSmallScreen)
+                      Wrap(
+                        spacing: 8,
+                        children: [
+                          _buildControlButton(
+                            'assets/icons/walk_off.svg',
+                            () => addCommand('MAJU'),
+                            size: isSmallScreen ? 50 : 30,
+                          ),
+                          _buildControlButton(
+                            'assets/icons/left_off.svg',
+                            () => addCommand('KIRI'),
+                            size: isSmallScreen ? 50 : 30,
+                          ),
+                          _buildControlButton(
+                            'assets/icons/right_off.svg',
+                            () => addCommand('KANAN'),
+                            size: isSmallScreen ? 50 : 30,
+                          ),
+                        ],
+                      ),
                   ],
                 ),
               ),
@@ -259,27 +319,14 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
-  Widget _buildImageButton(String assetPath, VoidCallback onPressed) {
+  Widget _buildControlButton(String assetPath, VoidCallback onPressed,
+      {required double size}) {
     return IconButton(
       onPressed: _isExecuting ? null : onPressed,
       icon: SvgPicture.asset(
         assetPath,
-        width: 50,
-        height: 50,
-      ),
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(),
-    );
-  }
-
-  Widget _buildIconButton(String assetPath, VoidCallback onPressed,
-      {bool isRunButton = false}) {
-    return IconButton(
-      onPressed: _isExecuting ? null : onPressed,
-      icon: SvgPicture.asset(
-        assetPath,
-        width: 50,
-        height: 50,
+        width: size,
+        height: size,
       ),
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints(),

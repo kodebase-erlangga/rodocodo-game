@@ -1,6 +1,5 @@
 // ignore: file_names
 import 'package:flutter/material.dart';
-// import 'package:rodocodo_game/game/game_widget.dart';
 import 'package:rodocodo_game/opsiLevel.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -9,6 +8,11 @@ class MainMenuScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ukuranLayar = MediaQuery.of(context).size;
+    final isSmallScreen = ukuranLayar.width >= 806;
+
+    debugPrint("Screen Width: $ukuranLayar, isTablet: $isSmallScreen");
+
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -33,7 +37,9 @@ class MainMenuScreen extends StatelessWidget {
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(horizontal: 45, vertical: 20),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: isSmallScreen ? 45 : 25,
+                        vertical: isSmallScreen ? 20 : 15),
                     textStyle: TextStyle(fontSize: 24),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -44,14 +50,14 @@ class MainMenuScreen extends StatelessWidget {
                     elevation: 6,
                   ),
                   child: Text(
-                    "Mulai",
+                    "MULAI",
                     style: GoogleFonts.carterOne(
-                      fontSize: 24,
+                      fontSize: isSmallScreen ? 24 : 18,
                       shadows: [
                         Shadow(
-                          color: Colors.black.withOpacity(0.5), // Shadow color
-                          offset: Offset(3, 3), // Shadow position (X, Y)
-                          blurRadius: 5, // How much to blur the shadow
+                          color: Colors.black.withOpacity(0.5),
+                          offset: Offset(3, 3),
+                          blurRadius: 5,
                         ),
                       ],
                     ),
@@ -66,7 +72,9 @@ class MainMenuScreen extends StatelessWidget {
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(horizontal: 45, vertical: 20),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: isSmallScreen ? 45 : 25,
+                        vertical: isSmallScreen ? 20 : 15),
                     textStyle: TextStyle(fontSize: 24),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -79,7 +87,7 @@ class MainMenuScreen extends StatelessWidget {
                   child: Text(
                     "Keluar",
                     style: GoogleFonts.carterOne(
-                      fontSize: 24,
+                      fontSize: isSmallScreen ? 24 : 18,
                       shadows: [
                         Shadow(
                           color: Colors.black.withOpacity(0.5), // Shadow color
