@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flame/game.dart';
-import 'package:rodocodo_game/Level.dart';
+import 'package:rodocodo_game/game/Level.dart';
 import 'game_logic.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flame_audio/flame_audio.dart';
@@ -53,7 +53,7 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void addCommand(String command) {
-    if (_isExecuting || _isGameOver || commands.length >= 28) return;
+    if (_isExecuting || _isGameOver || commands.length >= 24) return;
 
     FlameAudio.play('command.mp3');
 
@@ -104,7 +104,9 @@ class _GameScreenState extends State<GameScreen> {
     if (_isExecuting ||
         _isGameOver ||
         commands.isEmpty ||
-        _game.isTargetReached) return;
+        _game.isTargetReached) {
+      return;
+    }
 
     setState(() {
       commands.clear();
@@ -116,6 +118,12 @@ class _GameScreenState extends State<GameScreen> {
     if (!_game.isTargetReached) {
       _game.resetGame();
     }
+  }
+
+  int _calculateLines(
+      int itemCount, double maxWidth, double itemWidth, double spacing) {
+    int itemsPerLine = maxWidth ~/ (itemWidth + spacing);
+    return (itemCount / itemsPerLine).ceil();
   }
 
   @override
@@ -139,11 +147,25 @@ class _GameScreenState extends State<GameScreen> {
     final ukuranLayar = MediaQuery.of(context).size;
     final isSmallScreen = ukuranLayar.width >= 806;
 
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final commandCount = commands.length;
+
+    final iconSize = isSmallScreen ? 35.0 : 30.0;
+    final spacing = isSmallScreen ? 8.0 : 6.0;
+    final maxWrapWidth = isSmallScreen ? screenWidth * 0.6 : 500.0;
+
+    final numLines =
+        _calculateLines(commandCount, maxWrapWidth, iconSize, spacing);
+
+    final gameHeight =
+        screenHeight * (isSmallScreen ? (numLines > 1 ? 0.46 : 0.52965) : (numLines > 1 ? 0.5 : 0.6));
+
     debugPrint("Screen Width: $ukuranLayar, isTablet: $isSmallScreen");
 
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: 40,
+        toolbarHeight: isSmallScreen ? 60 : 40,
         title: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -208,14 +230,12 @@ class _GameScreenState extends State<GameScreen> {
                       ],
                     ),
                   Expanded(
-                    flex: isSmallScreen ? 6 : 7,
                     child: Padding(
-                      padding: EdgeInsets.all(isSmallScreen ? 8 : 25),
+                      padding: EdgeInsets.all(isSmallScreen ? 60 : 25),
                       child: SizedBox(
                         width: MediaQuery.of(context).size.width *
-                            (isSmallScreen ? 0.8 : 0.6),
-                        height: MediaQuery.of(context).size.height *
-                            (isSmallScreen ? 0.5 : 0.6),
+                            (isSmallScreen ? 0.5 : 0.7),
+                        height: gameHeight,
                         child: GameWidget(game: _game),
                       ),
                     ),
@@ -242,28 +262,34 @@ class _GameScreenState extends State<GameScreen> {
                             padding: EdgeInsets.all(isSmallScreen ? 8 : 8),
                             width:
                                 isSmallScreen ? ukuranLayar.width * 0.6 : 500,
-                            height: commands.length > 15
-                                ? 60 + ((commands.length / 15).ceil() - 1) * 50
-                                : isSmallScreen
-                                    ? 60
-                                    : 40,
-                            child: ListView(
-                              scrollDirection: Axis.horizontal,
-                              children: commands.asMap().entries.map((entry) {
-                                final index = entry.key;
-                                final command = entry.value;
-                                final isActive = index == _currentStep;
+                            constraints: BoxConstraints(
+                              minHeight: isSmallScreen ? 50 : 40,
+                              maxHeight: isSmallScreen ? 150 : 100,
+                            ),
+                            child: SingleChildScrollView(
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final iconSize = isSmallScreen ? 35.0 : 30.0;
+                                  final spacing = isSmallScreen ? 8.0 : 6.0;
 
-                                return Padding(
-                                  padding:
-                                      EdgeInsets.all(isSmallScreen ? 4 : 2),
-                                  child: SvgPicture.asset(
-                                    'assets/icons/${_getCommandAsset(command)}_${isActive ? 'on' : 'off'}.svg',
-                                    width: isSmallScreen ? 35 : 30,
-                                    height: isSmallScreen ? 35 : 30,
-                                  ),
-                                );
-                              }).toList(),
+                                  return Wrap(
+                                    spacing: spacing,
+                                    runSpacing: spacing,
+                                    children:
+                                        commands.asMap().entries.map((entry) {
+                                      final index = entry.key;
+                                      final command = entry.value;
+                                      final isActive = index == _currentStep;
+
+                                      return SvgPicture.asset(
+                                        'assets/icons/${_getCommandAsset(command)}_${isActive ? 'on' : 'off'}.svg',
+                                        width: iconSize,
+                                        height: iconSize,
+                                      );
+                                    }).toList(),
+                                  );
+                                },
+                              ),
                             ),
                           ),
                         ),

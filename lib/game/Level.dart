@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:rodocodo_game/game/game_widget.dart';
 import 'package:rodocodo_game/main.dart';
-import 'package:rodocodo_game/opsiLevel.dart';
+import 'package:rodocodo_game/game/opsiLevel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Level extends StatefulWidget {
@@ -74,11 +74,20 @@ class _LevelState extends State<Level> with RouteAware {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
     bool isTablet = screenWidth >= 806;
-
     debugPrint("Screen Width: $screenWidth, isTablet: $isTablet");
 
-    return Scaffold(
-      body: Stack(
+    // ignore: deprecated_member_use
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OpsiLevel(),
+          ),
+        );
+        return false;
+      },
+      child: Stack(
         children: [
           SizedBox.expand(
             child: Container(
@@ -87,7 +96,6 @@ class _LevelState extends State<Level> with RouteAware {
                   image: AssetImage("assets/images/background_kota.jpg"),
                   fit: BoxFit.cover,
                   colorFilter: ColorFilter.mode(
-                    // ignore: deprecated_member_use
                     Colors.black.withOpacity(0.5),
                     BlendMode.darken,
                   ),
@@ -109,8 +117,8 @@ class _LevelState extends State<Level> with RouteAware {
               },
               child: SvgPicture.asset(
                 'assets/icons/back.svg',
-                width: isTablet ? 50 : 40,
-                height: isTablet ? 50 : 40,
+                width: isTablet ? 40 : 40,
+                height: isTablet ? 40 : 40,
               ),
             ),
           ),

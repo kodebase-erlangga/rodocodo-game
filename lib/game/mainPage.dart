@@ -1,6 +1,6 @@
 // ignore: file_names
 import 'package:flutter/material.dart';
-import 'package:rodocodo_game/opsiLevel.dart';
+import 'package:rodocodo_game/game/opsiLevel.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class MainMenuScreen extends StatelessWidget {

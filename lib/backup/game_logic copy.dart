@@ -7,7 +7,7 @@ import 'package:flame/game.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:rodocodo_game/Level.dart';
+import 'package:rodocodo_game/game/Level.dart';
 import 'package:rodocodo_game/game/mainPage.dart';
 
 enum TileType {
@@ -39,6 +39,7 @@ class FloorTile extends SpriteComponent with HasGameRef<MyGame> {
   })  : _type = type,
         super(position: position, size: Vector2.all(150));
 
+  @override
   Future<void> onLoad() async {
     await super.onLoad();
     updateSize(gameRef.size.x);

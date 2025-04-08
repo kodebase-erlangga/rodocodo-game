@@ -6,14 +6,13 @@ import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:rodocodo_game/Level.dart';
+import 'package:rodocodo_game/game/Level.dart';
 import 'package:rodocodo_game/game/mainPage.dart';
 
 enum TileType {
-  normal,
-  finish,
   start,
+  finish,
+  normal,
   normal_landscape,
   belok_noltiga,
   belok_sembilannol,
@@ -39,6 +38,7 @@ class FloorTile extends SpriteComponent with HasGameRef<MyGame> {
   })  : _type = type,
         super(position: position, size: Vector2.all(150));
 
+  @override
   Future<void> onLoad() async {
     await super.onLoad();
     updateSize(gameRef.size.x);
@@ -101,6 +101,7 @@ class MyGame extends FlameGame {
   int currentLevel = 1;
   Function(int)? onLevelCompleted;
   AudioPlayer? _startEnginePlayer;
+  AudioPlayer? _gasPlayer;
   bool _isFirstCommand = true;
   Function()? clearCommands;
 
@@ -111,6 +112,15 @@ class MyGame extends FlameGame {
 
   @override
   Color backgroundColor() => Colors.white;
+
+  @override
+  Future<void> onRemove() async {
+    _gasPlayer?.stop();
+    _startEnginePlayer?.stop();
+    FlameAudio.bgm.stop();
+    FlameAudio.audioCache.clearAll();
+    super.onRemove();
+  }
 
   @override
   Future<void> onLoad() async {
@@ -171,166 +181,375 @@ class MyGame extends FlameGame {
       final stars = myGame.calculateStars();
       final moveCount = myGame.getMoveCount?.call() ?? 0;
 
+      final screenSize = MediaQuery.of(context).size;
+      final isSmallScreen = screenSize.width <= 806;
+
       return Center(
-        child: AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: Center(
-            child: Text(
-              stars == 3 ? "Selamat! 🎉" : "Yahh! 😞",
-              style: TextStyle(
-                fontSize: 24,
-                color: stars == 3 ? Colors.green : Colors.orange,
-                fontWeight: FontWeight.bold,
+        child: Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: EdgeInsets.zero,
+          child: Container(
+            width: isSmallScreen ? 100 : 150,
+            height: isSmallScreen ? 223 : 470,
+            decoration: BoxDecoration(
+              gradient: const RadialGradient(
+                colors: [Color(0xFFFFFFFF), Color(0xFFF0CEAB)],
+                center: Alignment.center,
+                radius: 0.8,
+              ),
+              borderRadius: BorderRadius.circular(21),
+              border: Border.all(
+                color: const Color(0xFF4E2400),
+                width: isSmallScreen ? 2 : 4,
               ),
             ),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                  stars == 3
-                      ? "Kamu menemukan solusi optimal!"
-                      : "Kamu belum menemukan solusi optimal!",
-                  style: TextStyle(fontSize: 16)),
-              SizedBox(height: 15),
-              Text(
-                stars == 3
-                    ? "Menggunakan $moveCount perintah"
-                    : stars == 2
-                        ? "Kamu menggunakan $moveCount perintah"
-                        : "Ayo Coba Lagi! Kamu menggunakan $moveCount perintah",
-                style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: stars == 3 ? Colors.green : Colors.orange),
-              ),
-              SizedBox(height: 15),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  3,
-                  (index) => Icon(
-                    Icons.star,
-                    color: index < stars ? Colors.amber : Colors.grey[300],
-                    size: 40,
-                  ),
-                ),
-              ),
-              SizedBox(height: 20),
-            ],
-          ),
-          actions: [
-            // Padding(
-            // padding: const EdgeInsets.symmetric(horizontal: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            padding: EdgeInsets.fromLTRB(
+                isSmallScreen ? 7 : 14,
+                isSmallScreen ? 11 : 25,
+                isSmallScreen ? 7 : 14,
+                isSmallScreen ? 11 : 25),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                GestureDetector(
-                  onTap: () {
-                    myGame.overlays.remove('congrats');
-                    myGame.resetGame();
-                    if (myGame.naikLevel != null) myGame.naikLevel!();
-                  },
-                  child: SvgPicture.asset(
-                    'assets/icons/restart.svg',
-                    width: 50,
-                    height: 50,
-                  ),
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/images/pita.png',
+                      height: isSmallScreen ? 50 : 80,
+                      width: isSmallScreen ? 250 : 300,
+                      fit: BoxFit.cover,
+                    ),
+                    Transform.translate(
+                      offset: Offset(0, isSmallScreen ? -10 : -15),
+                      child: Text(
+                        'B E R H A S I L',
+                        style: TextStyle(
+                          fontFamily: 'Days One',
+                          fontWeight:
+                              isSmallScreen ? FontWeight.w800 : FontWeight.w600,
+                          fontSize: isSmallScreen ? 15 : 25,
+                          color: Colors.white,
+                          height: isSmallScreen ? 0.5 : 1.0,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(width: 20),
-                GestureDetector(
-                  onTap: () {
-                    myGame.overlays.remove('congrats');
-                    myGame.currentLevel++;
-                    myGame.resetGame();
-                    if (myGame.naikLevel != null) myGame.naikLevel!();
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => Level(),
+                SizedBox(height: isSmallScreen ? 2 : 18),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(3, (index) {
+                    double offsetY;
+                    if (index == 1) {
+                      offsetY = isSmallScreen ? -10 : -20;
+                    } else {
+                      offsetY = isSmallScreen ? -2.5 : -5;
+                    }
+                    return Transform.translate(
+                      offset: Offset(0, offsetY),
+                      child: Transform.rotate(
+                        angle: -25 * pi / 180,
+                        child: Container(
+                          width: isSmallScreen ? 60 : 70,
+                          height: isSmallScreen ? 50 : 65,
+                          margin: EdgeInsets.symmetric(
+                              horizontal: isSmallScreen ? 2.5 : 5),
+                          child: Stack(
+                            children: [
+                              Icon(
+                                Icons.star,
+                                color: Colors.white,
+                                size: isSmallScreen ? 53 + 6 : 75 + 6,
+                              ),
+                              Icon(
+                                Icons.star,
+                                color: index < stars
+                                    ? const Color(0xFFFFE30E)
+                                    : Colors.grey[300],
+                                size: isSmallScreen ? 50 : 75,
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     );
-                  },
-                  child: SvgPicture.asset(
-                    'assets/icons/next.svg',
-                    width: 50,
-                    height: 50,
+                  }),
+                ),
+                SizedBox(height: isSmallScreen ? 2 : 18),
+                Container(
+                  width: isSmallScreen ? 200 : 232,
+                  height: isSmallScreen ? 37 : 56,
+                  padding: EdgeInsets.only(
+                      top: isSmallScreen ? 7 : 5,
+                      bottom: isSmallScreen ? 7 : 5),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(isSmallScreen ? 5 : 10),
+                    border: Border.all(width: 2, color: Colors.black12),
                   ),
+                  child: Center(
+                    child: RichText(
+                      textAlign: TextAlign.center,
+                      text: TextSpan(
+                        style: TextStyle(
+                          fontFamily: 'Days One',
+                          fontWeight: FontWeight.w600,
+                          fontSize: isSmallScreen ? 8 : 12,
+                          height: isSmallScreen ? 10 / 12 : 20 / 12,
+                          color: const Color(0xFF6A6464),
+                        ),
+                        children: [
+                          const TextSpan(
+                              text: 'kamu berhasil menyelesaikan dengan '),
+                          TextSpan(
+                            text: '$moveCount',
+                            style: const TextStyle(color: Color(0xFFFE7B0A)),
+                          ),
+                          const TextSpan(text: ' langkah'),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: isSmallScreen ? 5 : 30),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFE7B0A),
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(
+                            horizontal: isSmallScreen ? 8 : 20,
+                            vertical: isSmallScreen ? 3 : 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(isSmallScreen ? 10 : 10),
+                          side: const BorderSide(
+                            color: Color(0xFF4E2400),
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                      onPressed: () {
+                        myGame.overlays.remove('congrats');
+                        myGame.resetGame();
+                        if (myGame.naikLevel != null) myGame.naikLevel!();
+                      },
+                      child: Text(
+                        'Ulangi',
+                        style: TextStyle(
+                          fontFamily: 'Carter One',
+                          fontSize: isSmallScreen ? 8 : 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: isSmallScreen ? 50 : 22),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFE7B0A),
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(
+                            horizontal: isSmallScreen ? 8 : 20,
+                            vertical: isSmallScreen ? 3 : 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(isSmallScreen ? 8 : 10),
+                          side: const BorderSide(
+                            color: Color(0xFF4E2400),
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => Level(),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        'Selanjutnya',
+                        style: TextStyle(
+                          fontFamily: 'Carter One',
+                          fontSize: isSmallScreen ? 8 : 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-            // ),
-          ],
+          ),
         ),
       );
     });
 
     overlays.addEntry('gameOver', (context, game) {
+      final screenSize = MediaQuery.of(context).size;
+      final isSmallScreen = screenSize.width <= 806;
+
       return Center(
-        child: AlertDialog(
-          backgroundColor: const Color.fromARGB(255, 251, 97, 148),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: const Text(
-            "GAME OVER!",
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-              color: Colors.redAccent,
+        child: Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: EdgeInsets.zero,
+          child: Container(
+            width: isSmallScreen ? 100 : 150,
+            height: isSmallScreen ? 223 : 400,
+            decoration: BoxDecoration(
+              gradient: const RadialGradient(
+                colors: [Color(0xFFFFFFFF), Color(0xFFF0CEAB)],
+                center: Alignment.center,
+                radius: 0.8,
+              ),
+              borderRadius: BorderRadius.circular(21),
+              border: Border.all(
+                color: const Color(0xFF4E2400),
+                width: isSmallScreen ? 2 : 4,
+              ),
             ),
-          ),
-          content: const Text(
-            "Ohh noo! Keluar dari jalur!",
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
-            ),
-          ),
-          actions: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            padding: EdgeInsets.fromLTRB(
+                isSmallScreen ? 7 : 14,
+                isSmallScreen ? 11 : 25,
+                isSmallScreen ? 7 : 14,
+                isSmallScreen ? 11 : 25),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                GestureDetector(
-                  onTap: () {
-                    overlays.remove('gameOver');
-                    resetGame();
-                  },
-                  child: Column(
-                    children: [
-                      SvgPicture.asset(
-                        'assets/icons/restart.svg',
-                        width: 40,
-                        height: 40,
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/images/pita_gagal.png',
+                      height: isSmallScreen ? 50 : 80,
+                      width: isSmallScreen ? 250 : 300,
+                      fit: BoxFit.cover,
+                    ),
+                    Transform.translate(
+                      offset: Offset(0, isSmallScreen ? -10 : -15),
+                      child: Text(
+                        'G A G A L',
+                        style: TextStyle(
+                          fontFamily: 'Days One',
+                          fontWeight:
+                              isSmallScreen ? FontWeight.w800 : FontWeight.w600,
+                          fontSize: isSmallScreen ? 15 : 25,
+                          color: Colors.white,
+                          height: isSmallScreen ? 0.5 : 1.0,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                    ],
+                    ),
+                  ],
+                ),
+                SizedBox(height: isSmallScreen ? 2 : 18),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(3, (index) {
+                    double offsetY;
+                    if (index == 1) {
+                      offsetY = isSmallScreen ? -10 : -20;
+                    } else {
+                      offsetY = isSmallScreen ? -2.5 : -5;
+                    }
+                    return Transform.translate(
+                      offset: Offset(0, offsetY),
+                      child: Transform.rotate(
+                        angle: -25 * pi / 180,
+                        child: Container(
+                          width: isSmallScreen ? 60 : 70,
+                          height: isSmallScreen ? 50 : 65,
+                          margin: EdgeInsets.symmetric(
+                              horizontal: isSmallScreen ? 2.5 : 5),
+                          child: Stack(
+                            children: [
+                              Icon(
+                                Icons.star,
+                                color: Colors.white,
+                                size: isSmallScreen ? 53 + 6 : 75 + 6,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+                SizedBox(height: isSmallScreen ? 2 : 18),
+                Container(
+                  width: isSmallScreen ? 200 : 232,
+                  height: isSmallScreen ? 37 : 56,
+                  padding: EdgeInsets.only(
+                      top: isSmallScreen ? 7 : 5,
+                      bottom: isSmallScreen ? 7 : 5),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(isSmallScreen ? 5 : 10),
+                    border: Border.all(width: 2, color: Colors.black12),
+                  ),
+                  child: Center(
+                    child: RichText(
+                      textAlign: TextAlign.center,
+                      text: TextSpan(
+                        style: TextStyle(
+                          fontFamily: 'Days One',
+                          fontWeight: FontWeight.w600,
+                          fontSize: isSmallScreen ? 8 : 12,
+                          height: isSmallScreen ? 10 / 12 : 20 / 12,
+                          color: const Color(0xFF6A6464),
+                        ),
+                        children: [
+                          const TextSpan(
+                              text:
+                                  'Yah .. kamu keluar dari jalur! Ayo coba lagi'),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (context) => MainMenuScreen()),
-                      (route) => false, // Menghapus semua halaman sebelumnya
-                    );
-                  },
-                  child: Column(
-                    children: [
-                      SvgPicture.asset(
-                        'assets/icons/home.svg',
-                        width: 40,
-                        height: 40,
+                SizedBox(height: isSmallScreen ? 5 : 28),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFE7B0A),
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(
+                            horizontal: isSmallScreen ? 35 : 80,
+                            vertical: isSmallScreen ? 3 : 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(isSmallScreen ? 10 : 10),
+                          side: const BorderSide(
+                            color: Color(0xFF4E2400),
+                            width: 2,
+                          ),
+                        ),
                       ),
-                    ],
-                  ),
+                      onPressed: () {
+                        overlays.remove('gameOver');
+                        resetGame();
+                      },
+                      child: Text(
+                        'Ulangi',
+                        style: TextStyle(
+                          fontFamily: 'Carter One',
+                          fontSize: isSmallScreen ? 8 : 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
+          ),
         ),
       );
     });
@@ -339,78 +558,174 @@ class MyGame extends FlameGame {
       final myGame = game as MyGame;
       final stars = myGame.calculateStars();
 
+      final screenSize = MediaQuery.of(context).size;
+      final isSmallScreen = screenSize.width <= 806;
+
       return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                3,
-                (index) => Icon(
-                  Icons.star,
-                  color: index < stars ? Colors.amber : Colors.grey[300],
-                  size: 40,
-                ),
+        child: Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: EdgeInsets.zero,
+          child: Container(
+            width: isSmallScreen ? 100 : 150,
+            height: isSmallScreen ? 223 : 400,
+            decoration: BoxDecoration(
+              gradient: const RadialGradient(
+                colors: [Color(0xFFFFFFFF), Color(0xFFF0CEAB)],
+                center: Alignment.center,
+                radius: 0.8,
+              ),
+              borderRadius: BorderRadius.circular(21),
+              border: Border.all(
+                color: const Color(0xFF4E2400),
+                width: isSmallScreen ? 2 : 4,
               ),
             ),
-            AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              title: const Center(
-                child: Text(
-                  "LUAR BIASA! 🏆",
-                  style: TextStyle(
-                    fontSize: 24,
-                    color: Colors.green,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    "Anda telah menamatkan semua level!",
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 15),
-                  Text(
-                    "Kamu menemukan solusi optimal, menggunakan ${myGame.getMoveCount?.call() ?? 0} perintah",
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 20),
-                ],
-              ),
-              actions: [
-                Center(
-                  child: TextButton(
-                    style: TextButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+            padding: EdgeInsets.fromLTRB(
+                isSmallScreen ? 7 : 14,
+                isSmallScreen ? 11 : 25,
+                isSmallScreen ? 7 : 14,
+                isSmallScreen ? 11 : 25),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/images/pita.png',
+                      height: isSmallScreen ? 50 : 80,
+                      width: isSmallScreen ? 250 : 300,
+                      fit: BoxFit.cover,
+                    ),
+                    Transform.translate(
+                      offset: Offset(0, isSmallScreen ? -10 : -15),
+                      child: Text(
+                        'LUAR BIASA 🏆',
+                        style: TextStyle(
+                          fontFamily: 'Days One',
+                          fontWeight:
+                              isSmallScreen ? FontWeight.w800 : FontWeight.w600,
+                          fontSize: isSmallScreen ? 15 : 25,
+                          color: Colors.white,
+                          height: isSmallScreen ? 0.5 : 1.0,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
                     ),
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => MainMenuScreen()),
-                      );
-                    },
-                    child: const Text(
-                      "MENU UTAMA",
-                      style: TextStyle(color: Colors.white),
+                  ],
+                ),
+                SizedBox(height: isSmallScreen ? 2 : 18),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(3, (index) {
+                    double offsetY;
+                    if (index == 1) {
+                      offsetY = isSmallScreen ? -10 : -20;
+                    } else {
+                      offsetY = isSmallScreen ? -2.5 : -5;
+                    }
+                    return Transform.translate(
+                      offset: Offset(0, offsetY),
+                      child: Transform.rotate(
+                        angle: -25 * pi / 180,
+                        child: Container(
+                          width: isSmallScreen ? 60 : 70,
+                          height: isSmallScreen ? 50 : 65,
+                          margin: EdgeInsets.symmetric(
+                              horizontal: isSmallScreen ? 2.5 : 5),
+                          child: Stack(
+                            children: [
+                              Icon(
+                                Icons.star,
+                                color: Colors.white,
+                                size: isSmallScreen ? 53 + 6 : 75 + 6,
+                              ),
+                              Icon(
+                                Icons.star,
+                                color: index < stars
+                                    ? const Color(0xFFFFE30E)
+                                    : Colors.grey[300],
+                                size: isSmallScreen ? 50 : 75,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+                SizedBox(height: isSmallScreen ? 2 : 18),
+                Container(
+                  width: isSmallScreen ? 200 : 232,
+                  height: isSmallScreen ? 37 : 56,
+                  padding: EdgeInsets.only(
+                      top: isSmallScreen ? 7 : 5,
+                      bottom: isSmallScreen ? 7 : 5),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(isSmallScreen ? 5 : 10),
+                    border: Border.all(width: 2, color: Colors.black12),
+                  ),
+                  child: Center(
+                    child: RichText(
+                      textAlign: TextAlign.center,
+                      text: TextSpan(
+                        style: TextStyle(
+                          fontFamily: 'Days One',
+                          fontWeight: FontWeight.w600,
+                          fontSize: isSmallScreen ? 8 : 12,
+                          height: isSmallScreen ? 10 / 12 : 20 / 12,
+                          color: const Color(0xFF6A6464),
+                        ),
+                        children: [
+                          const TextSpan(
+                              text: 'Anda telah menamatkan semua level!'),
+                        ],
+                      ),
                     ),
                   ),
+                ),
+                SizedBox(height: isSmallScreen ? 5 : 28),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFE7B0A),
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(
+                            horizontal: isSmallScreen ? 8 : 20,
+                            vertical: isSmallScreen ? 3 : 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(isSmallScreen ? 10 : 10),
+                          side: const BorderSide(
+                            color: Color(0xFF4E2400),
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => MainMenuScreen()),
+                        );
+                      },
+                      child: Text(
+                        'Beranda',
+                        style: TextStyle(
+                          fontFamily: 'Carter One',
+                          fontSize: isSmallScreen ? 8 : 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
+          ),
         ),
       );
     });
@@ -695,6 +1010,8 @@ class MyGame extends FlameGame {
   }
 
   void showGameOver() {
+    _gasPlayer?.stop();
+    _startEnginePlayer?.stop();
     FlameAudio.bgm.stop();
     FlameAudio.play('gameOver.mp3');
 
@@ -715,9 +1032,8 @@ class MyGame extends FlameGame {
         _isFirstCommand = false;
       }
 
-      AudioPlayer? gasPlayer;
       try {
-        gasPlayer = await FlameAudio.loop('gas.mp3');
+        _gasPlayer = await FlameAudio.loop('gas.mp3');
 
         switch (command) {
           case 'MAJU':
@@ -731,7 +1047,8 @@ class MyGame extends FlameGame {
             break;
         }
       } finally {
-        gasPlayer?.stop();
+        _gasPlayer?.stop();
+        _gasPlayer = null;
       }
     }
     _isExecutingCommands = false;
@@ -789,6 +1106,12 @@ class MyGame extends FlameGame {
     FlameAudio.bgm.stop();
     FlameAudio.play('startEngine.mp3');
     _isFirstCommand = true;
+
+    _gasPlayer?.stop();
+    _gasPlayer = null;
+
+    FlameAudio.bgm.stop();
+    FlameAudio.play('success.mp3');
   }
 }
 
