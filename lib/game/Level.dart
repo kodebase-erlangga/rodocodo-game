@@ -1,3 +1,5 @@
+// ignore_for_file: file_names
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:rodocodo_game/game/game_widget.dart';
@@ -96,6 +98,7 @@ class _LevelState extends State<Level> with RouteAware {
                   image: AssetImage("assets/images/background_kota.jpg"),
                   fit: BoxFit.cover,
                   colorFilter: ColorFilter.mode(
+                    // ignore: deprecated_member_use
                     Colors.black.withOpacity(0.5),
                     BlendMode.darken,
                   ),
@@ -206,6 +209,7 @@ class _LevelState extends State<Level> with RouteAware {
                 fontSize: fontSize,
                 fontWeight: FontWeight.w900,
                 color: Colors.white,
+                decoration: TextDecoration.none,
                 shadows: [
                   Shadow(
                     blurRadius: 5,

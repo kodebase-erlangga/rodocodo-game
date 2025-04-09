@@ -1,4 +1,4 @@
-// ignore_for_file: constant_identifier_names
+// ignore_for_file: constant_identifier_names, file_names
 
 import 'dart:async';
 import 'dart:math';
@@ -47,9 +47,9 @@ class FloorTile extends SpriteComponent with HasGameRef<MyGame> {
   }
 
   @override
-  void onGameResize(Vector2 newSize) {
-    super.onGameResize(newSize);
-    updateSize(newSize.x);
+  void onGameResize(Vector2 size) {
+    super.onGameResize(size);
+    updateSize(size.x);
   }
 
   void updateSize(double screenWidth) {
@@ -126,9 +126,9 @@ class MyGame extends FlameGame {
   }
 
   @override
-  void onGameResize(Vector2 newSize) {
-    super.onGameResize(newSize);
-    updateTileSize(newSize.x);
+  void onGameResize(Vector2 size) {
+    super.onGameResize(size);
+    updateTileSize(size.x);
   }
 
   void updateTileSize(double screenWidth) {
@@ -794,9 +794,9 @@ class Character extends SpriteComponent with HasGameRef<MyGame> {
   }
 
   @override
-  void onGameResize(Vector2 newSize) {
-    super.onGameResize(newSize);
-    updateSize(newSize.x);
+  void onGameResize(Vector2 size) {
+    super.onGameResize(size);
+    updateSize(size.x);
   }
 
   void updateSize(double screenWidth) {

@@ -5,16 +5,18 @@ import 'game_logic.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flame_audio/flame_audio.dart';
 
+bool disableButtons = false;
+
 class GameScreen extends StatefulWidget {
   final int initialLevel;
   final Function(int)? onLevelCompleted;
-  final Function(bool)? onTargetReached;
+  // final Function(bool)? onTargetReached;
 
   const GameScreen({
     super.key,
     required this.initialLevel,
     this.onLevelCompleted,
-    this.onTargetReached,
+    // this.onTargetReached,
   });
 
   @override
@@ -30,7 +32,6 @@ class _GameScreenState extends State<GameScreen> {
   final bool _isGameOver = false;
   int _lastExecutedIndex = 0;
   late MyGame _game;
-  bool isRunning = true;
 
   @override
   void dispose() {
@@ -67,7 +68,6 @@ class _GameScreenState extends State<GameScreen> {
     if (_isExecuting || _isGameOver) return;
 
     _isExecuting = true;
-
     int start = _lastExecutedIndex;
     int end = commands.length;
 
@@ -79,15 +79,22 @@ class _GameScreenState extends State<GameScreen> {
       await _game.executeCommands([commands[i]]);
       await Future.delayed(const Duration(milliseconds: 500));
 
-      if (_game.isGameOver) {
+      // if (_game.isGameOver || _game.isTargetReached) {
+      if (_game.isGameOver || _game.isTargetReached) {
         setState(() {
-          _isExecuting = false;
           commands.clear();
-          moveCount = 0;
+          _currentStep = -1;
+          _isExecuting = false;
           _lastExecutedIndex = 0;
+          disableButtons = true;
         });
         return;
       }
+      // } else if (_game.showGameOver()) {
+      //   setState(() {
+      //     _isExecuting = false;
+      //   });
+      // }
 
       setState(() {
         _lastExecutedIndex = i + 1;
@@ -113,6 +120,7 @@ class _GameScreenState extends State<GameScreen> {
       moveCount = 0;
       _currentStep = -1;
       _lastExecutedIndex = 0;
+      disableButtons = false;
     });
 
     if (!_game.isTargetReached) {
@@ -158,8 +166,10 @@ class _GameScreenState extends State<GameScreen> {
     final numLines =
         _calculateLines(commandCount, maxWrapWidth, iconSize, spacing);
 
-    final gameHeight =
-        screenHeight * (isSmallScreen ? (numLines > 1 ? 0.46 : 0.52965) : (numLines > 1 ? 0.5 : 0.6));
+    final gameHeight = screenHeight *
+        (isSmallScreen
+            ? (numLines > 1 ? 0.46 : 0.52965)
+            : (numLines > 1 ? 0.5 : 0.6));
 
     debugPrint("Screen Width: $ukuranLayar, isTablet: $isSmallScreen");
 
@@ -348,7 +358,7 @@ class _GameScreenState extends State<GameScreen> {
   Widget _buildControlButton(String assetPath, VoidCallback onPressed,
       {required double size}) {
     return IconButton(
-      onPressed: _isExecuting ? null : onPressed,
+      onPressed: disableButtons || _isExecuting ? null : onPressed,
       icon: SvgPicture.asset(
         assetPath,
         width: size,

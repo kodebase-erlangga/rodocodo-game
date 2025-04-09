@@ -1,3 +1,5 @@
+// ignore_for_file: file_names
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -16,6 +18,7 @@ class OpsiLevel extends StatelessWidget {
 
     debugPrint("Screen Width: $screenSize, isTablet: $isSmallScreen");
 
+    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
         Navigator.pushReplacement(
@@ -35,6 +38,7 @@ class OpsiLevel extends StatelessWidget {
               image: AssetImage("assets/images/background_kota.jpg"),
               fit: BoxFit.cover,
               colorFilter: ColorFilter.mode(
+                // ignore: deprecated_member_use
                 Colors.black.withOpacity(0.5),
                 BlendMode.darken,
               ),
@@ -187,6 +191,7 @@ class OpsiLevel extends StatelessWidget {
                     color: Colors.white,
                     shadows: [
                       Shadow(
+                        // ignore: deprecated_member_use
                         color: Colors.black.withOpacity(0.5),
                         offset: Offset(2, 2),
                         blurRadius: 3,

@@ -1,4 +1,8 @@
+// ignore: duplicate_ignore
+// ignore: file_names, duplicate_ignore
 // ignore: file_names
+// ignore_for_file: file_names
+
 import 'package:flutter/material.dart';
 import 'package:rodocodo_game/game/opsiLevel.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -55,44 +59,10 @@ class MainMenuScreen extends StatelessWidget {
                       fontSize: isSmallScreen ? 24 : 18,
                       shadows: [
                         Shadow(
+                          // ignore: deprecated_member_use
                           color: Colors.black.withOpacity(0.5),
                           offset: Offset(3, 3),
                           blurRadius: 5,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                SizedBox(width: 30),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => OpsiLevel()),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: isSmallScreen ? 45 : 25,
-                        vertical: isSmallScreen ? 20 : 15),
-                    textStyle: TextStyle(fontSize: 24),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
-                    side: BorderSide(color: Colors.black, width: 4),
-                    elevation: 3,
-                  ),
-                  child: Text(
-                    "Keluar",
-                    style: GoogleFonts.carterOne(
-                      fontSize: isSmallScreen ? 24 : 18,
-                      shadows: [
-                        Shadow(
-                          color: Colors.black.withOpacity(0.5), // Shadow color
-                          offset: Offset(3, 3), // Shadow position (X, Y)
-                          blurRadius: 5, // How much to blur the shadow
                         ),
                       ],
                     ),

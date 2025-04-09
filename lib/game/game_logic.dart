@@ -7,6 +7,7 @@ import 'package:flame/game.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:rodocodo_game/game/Level.dart';
+import 'package:rodocodo_game/game/game_widget.dart';
 import 'package:rodocodo_game/game/mainPage.dart';
 
 enum TileType {
@@ -46,9 +47,9 @@ class FloorTile extends SpriteComponent with HasGameRef<MyGame> {
   }
 
   @override
-  void onGameResize(Vector2 newSize) {
-    super.onGameResize(newSize);
-    updateSize(newSize.x);
+  void onGameResize(Vector2 size) {
+    super.onGameResize(size);
+    updateSize(size.x);
   }
 
   void updateSize(double screenWidth) {
@@ -104,7 +105,6 @@ class MyGame extends FlameGame {
   AudioPlayer? _gasPlayer;
   bool _isFirstCommand = true;
   Function()? clearCommands;
-
   double tileSize = 150.0;
 
   MyGame({int initialLevel = 1, this.onLevelCompleted})
@@ -135,9 +135,9 @@ class MyGame extends FlameGame {
   }
 
   @override
-  void onGameResize(Vector2 newSize) {
-    super.onGameResize(newSize);
-    updateTileSize(newSize.x);
+  void onGameResize(Vector2 size) {
+    super.onGameResize(size);
+    updateTileSize(size.x);
   }
 
   void updateTileSize(double screenWidth) {
@@ -184,209 +184,221 @@ class MyGame extends FlameGame {
       final screenSize = MediaQuery.of(context).size;
       final isSmallScreen = screenSize.width <= 806;
 
-      return Center(
-        child: Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: EdgeInsets.zero,
-          child: Container(
-            width: isSmallScreen ? 100 : 150,
-            height: isSmallScreen ? 223 : 470,
-            decoration: BoxDecoration(
-              gradient: const RadialGradient(
-                colors: [Color(0xFFFFFFFF), Color(0xFFF0CEAB)],
-                center: Alignment.center,
-                radius: 0.8,
-              ),
-              borderRadius: BorderRadius.circular(21),
-              border: Border.all(
-                color: const Color(0xFF4E2400),
-                width: isSmallScreen ? 2 : 4,
-              ),
-            ),
-            padding: EdgeInsets.fromLTRB(
-                isSmallScreen ? 7 : 14,
-                isSmallScreen ? 11 : 25,
-                isSmallScreen ? 7 : 14,
-                isSmallScreen ? 11 : 25),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Image.asset(
-                      'assets/images/pita.png',
-                      height: isSmallScreen ? 50 : 80,
-                      width: isSmallScreen ? 250 : 300,
-                      fit: BoxFit.cover,
-                    ),
-                    Transform.translate(
-                      offset: Offset(0, isSmallScreen ? -10 : -15),
-                      child: Text(
-                        'B E R H A S I L',
-                        style: TextStyle(
-                          fontFamily: 'Days One',
-                          fontWeight:
-                              isSmallScreen ? FontWeight.w800 : FontWeight.w600,
-                          fontSize: isSmallScreen ? 15 : 25,
-                          color: Colors.white,
-                          height: isSmallScreen ? 0.5 : 1.0,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
+      return Stack(
+        children: [
+          Center(
+            child: Dialog(
+              backgroundColor: Colors.transparent,
+              insetPadding: EdgeInsets.zero,
+              child: Container(
+                width: isSmallScreen ? 100 : 150,
+                height: isSmallScreen ? 223 : 470,
+                decoration: BoxDecoration(
+                  gradient: const RadialGradient(
+                    colors: [Color(0xFFFFFFFF), Color(0xFFF0CEAB)],
+                    center: Alignment.center,
+                    radius: 0.8,
+                  ),
+                  borderRadius: BorderRadius.circular(21),
+                  border: Border.all(
+                    color: const Color(0xFF4E2400),
+                    width: isSmallScreen ? 2 : 4,
+                  ),
                 ),
-                SizedBox(height: isSmallScreen ? 2 : 18),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(3, (index) {
-                    double offsetY;
-                    if (index == 1) {
-                      offsetY = isSmallScreen ? -10 : -20;
-                    } else {
-                      offsetY = isSmallScreen ? -2.5 : -5;
-                    }
-                    return Transform.translate(
-                      offset: Offset(0, offsetY),
-                      child: Transform.rotate(
-                        angle: -25 * pi / 180,
-                        child: Container(
-                          width: isSmallScreen ? 60 : 70,
-                          height: isSmallScreen ? 50 : 65,
-                          margin: EdgeInsets.symmetric(
-                              horizontal: isSmallScreen ? 2.5 : 5),
-                          child: Stack(
+                padding: EdgeInsets.fromLTRB(
+                  isSmallScreen ? 7 : 14,
+                  isSmallScreen ? 11 : 25,
+                  isSmallScreen ? 7 : 14,
+                  isSmallScreen ? 11 : 25,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Image.asset(
+                          'assets/images/pita.png',
+                          height: isSmallScreen ? 50 : 80,
+                          width: isSmallScreen ? 250 : 300,
+                          fit: BoxFit.cover,
+                        ),
+                        Transform.translate(
+                          offset: Offset(0, isSmallScreen ? -10 : -15),
+                          child: Text(
+                            'B E R H A S I L',
+                            style: TextStyle(
+                              fontFamily: 'Days One',
+                              fontWeight: isSmallScreen
+                                  ? FontWeight.w800
+                                  : FontWeight.w600,
+                              fontSize: isSmallScreen ? 15 : 25,
+                              color: Colors.white,
+                              height: isSmallScreen ? 0.5 : 1.0,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: isSmallScreen ? 2 : 18),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(3, (index) {
+                        double offsetY;
+                        if (index == 1) {
+                          offsetY = isSmallScreen ? -10 : -20;
+                        } else {
+                          offsetY = isSmallScreen ? -2.5 : -5;
+                        }
+                        return Transform.translate(
+                          offset: Offset(0, offsetY),
+                          child: Transform.rotate(
+                            angle: -25 * pi / 180,
+                            child: Container(
+                              width: isSmallScreen ? 60 : 70,
+                              height: isSmallScreen ? 50 : 65,
+                              margin: EdgeInsets.symmetric(
+                                horizontal: isSmallScreen ? 2.5 : 5,
+                              ),
+                              child: Stack(
+                                children: [
+                                  Icon(
+                                    Icons.star,
+                                    color: Colors.white,
+                                    size: isSmallScreen ? 53 + 6 : 75 + 6,
+                                  ),
+                                  Icon(
+                                    Icons.star,
+                                    color: index < stars
+                                        ? const Color(0xFFFFE30E)
+                                        : Colors.grey[300],
+                                    size: isSmallScreen ? 50 : 75,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
+                    SizedBox(height: isSmallScreen ? 2 : 18),
+                    Container(
+                      width: isSmallScreen ? 200 : 232,
+                      height: isSmallScreen ? 37 : 56,
+                      padding: EdgeInsets.only(
+                        top: isSmallScreen ? 7 : 5,
+                        bottom: isSmallScreen ? 7 : 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius:
+                            BorderRadius.circular(isSmallScreen ? 5 : 10),
+                        border: Border.all(width: 2, color: Colors.black12),
+                      ),
+                      child: Center(
+                        child: RichText(
+                          textAlign: TextAlign.center,
+                          text: TextSpan(
+                            style: TextStyle(
+                              fontFamily: 'Days One',
+                              fontWeight: FontWeight.w600,
+                              fontSize: isSmallScreen ? 8 : 12,
+                              height: isSmallScreen ? 10 / 12 : 20 / 12,
+                              color: const Color(0xFF6A6464),
+                            ),
                             children: [
-                              Icon(
-                                Icons.star,
-                                color: Colors.white,
-                                size: isSmallScreen ? 53 + 6 : 75 + 6,
+                              const TextSpan(
+                                  text: 'kamu berhasil menyelesaikan dengan '),
+                              TextSpan(
+                                text: '$moveCount',
+                                style:
+                                    const TextStyle(color: Color(0xFFFE7B0A)),
                               ),
-                              Icon(
-                                Icons.star,
-                                color: index < stars
-                                    ? const Color(0xFFFFE30E)
-                                    : Colors.grey[300],
-                                size: isSmallScreen ? 50 : 75,
-                              ),
+                              const TextSpan(text: ' langkah'),
                             ],
                           ),
                         ),
                       ),
-                    );
-                  }),
-                ),
-                SizedBox(height: isSmallScreen ? 2 : 18),
-                Container(
-                  width: isSmallScreen ? 200 : 232,
-                  height: isSmallScreen ? 37 : 56,
-                  padding: EdgeInsets.only(
-                      top: isSmallScreen ? 7 : 5,
-                      bottom: isSmallScreen ? 7 : 5),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(isSmallScreen ? 5 : 10),
-                    border: Border.all(width: 2, color: Colors.black12),
-                  ),
-                  child: Center(
-                    child: RichText(
-                      textAlign: TextAlign.center,
-                      text: TextSpan(
-                        style: TextStyle(
-                          fontFamily: 'Days One',
-                          fontWeight: FontWeight.w600,
-                          fontSize: isSmallScreen ? 8 : 12,
-                          height: isSmallScreen ? 10 / 12 : 20 / 12,
-                          color: const Color(0xFF6A6464),
-                        ),
-                        children: [
-                          const TextSpan(
-                              text: 'kamu berhasil menyelesaikan dengan '),
-                          TextSpan(
-                            text: '$moveCount',
-                            style: const TextStyle(color: Color(0xFFFE7B0A)),
-                          ),
-                          const TextSpan(text: ' langkah'),
-                        ],
-                      ),
                     ),
-                  ),
-                ),
-                SizedBox(height: isSmallScreen ? 5 : 30),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFE7B0A),
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(
-                            horizontal: isSmallScreen ? 8 : 20,
-                            vertical: isSmallScreen ? 3 : 10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(isSmallScreen ? 10 : 10),
-                          side: const BorderSide(
-                            color: Color(0xFF4E2400),
-                            width: 2,
+                    SizedBox(height: isSmallScreen ? 5 : 30),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFE7B0A),
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isSmallScreen ? 8 : 20,
+                              vertical: isSmallScreen ? 3 : 10,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                  isSmallScreen ? 10 : 10),
+                              side: const BorderSide(
+                                color: Color(0xFF4E2400),
+                                width: 2,
+                              ),
+                            ),
+                          ),
+                          onPressed: () {
+                            myGame.overlays.remove('congrats');
+                            myGame.resetGame();
+                            if (myGame.naikLevel != null) myGame.naikLevel!();
+                          },
+                          child: Text(
+                            'Ulangi',
+                            style: TextStyle(
+                              fontFamily: 'Carter One',
+                              fontSize: isSmallScreen ? 8 : 12,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
-                      ),
-                      onPressed: () {
-                        myGame.overlays.remove('congrats');
-                        myGame.resetGame();
-                        if (myGame.naikLevel != null) myGame.naikLevel!();
-                      },
-                      child: Text(
-                        'Ulangi',
-                        style: TextStyle(
-                          fontFamily: 'Carter One',
-                          fontSize: isSmallScreen ? 8 : 12,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: isSmallScreen ? 50 : 22),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFE7B0A),
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(
-                            horizontal: isSmallScreen ? 8 : 20,
-                            vertical: isSmallScreen ? 3 : 10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(isSmallScreen ? 8 : 10),
-                          side: const BorderSide(
-                            color: Color(0xFF4E2400),
-                            width: 2,
+                        SizedBox(width: isSmallScreen ? 50 : 22),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFE7B0A),
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isSmallScreen ? 8 : 20,
+                              vertical: isSmallScreen ? 3 : 10,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.circular(isSmallScreen ? 8 : 10),
+                              side: const BorderSide(
+                                color: Color(0xFF4E2400),
+                                width: 2,
+                              ),
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => Level(),
+                              ),
+                            );
+                          },
+                          child: Text(
+                            'Selanjutnya',
+                            style: TextStyle(
+                              fontFamily: 'Carter One',
+                              fontSize: isSmallScreen ? 8 : 12,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
-                      ),
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => Level(),
-                          ),
-                        );
-                      },
-                      child: Text(
-                        'Selanjutnya',
-                        style: TextStyle(
-                          fontFamily: 'Carter One',
-                          fontSize: isSmallScreen ? 8 : 12,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
+                      ],
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
+        ],
       );
     });
 
@@ -535,6 +547,7 @@ class MyGame extends FlameGame {
                       onPressed: () {
                         overlays.remove('gameOver');
                         resetGame();
+                        if (naikLevel != null) naikLevel!();
                       },
                       child: Text(
                         'Ulangi',
@@ -1095,6 +1108,7 @@ class MyGame extends FlameGame {
     overlays.remove('congrats');
     isTargetReached = false;
     isExecuting = false;
+    disableButtons = false;
 
     removeAll(children);
 
@@ -1135,9 +1149,9 @@ class Character extends SpriteComponent with HasGameRef<MyGame> {
   }
 
   @override
-  void onGameResize(Vector2 newSize) {
-    super.onGameResize(newSize);
-    updateSize(newSize.x);
+  void onGameResize(Vector2 size) {
+    super.onGameResize(size);
+    updateSize(size.x);
   }
 
   void updateSize(double screenWidth) {
