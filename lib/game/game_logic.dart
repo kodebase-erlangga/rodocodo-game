@@ -375,6 +375,7 @@ class MyGame extends FlameGame {
                             ),
                           ),
                           onPressed: () {
+                            disableButtons = false;
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
