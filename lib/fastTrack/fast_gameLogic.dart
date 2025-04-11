@@ -6,8 +6,8 @@ import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
-import 'package:rodocodo_game/game/Level.dart';
-import 'package:rodocodo_game/game/game_widget.dart';
+import 'package:rodocodo_game/fastTrack/fast_Level.dart';
+import 'package:rodocodo_game/fastTrack/fast_gameWidget.dart';
 import 'package:rodocodo_game/game/mainPage.dart';
 
 enum TileType {
@@ -21,7 +21,7 @@ enum TileType {
   belok_tigaenam
 }
 
-class FloorTile extends SpriteComponent with HasGameRef<MyGame> {
+class FloorTile extends SpriteComponent with HasGameRef<Fast> {
   final String id;
   TileType _type;
   TileType get type => _type;
@@ -97,7 +97,7 @@ class FloorTile extends SpriteComponent with HasGameRef<MyGame> {
   }
 }
 
-class MyGame extends FlameGame {
+class Fast extends FlameGame {
   late Character _character;
   bool isExecuting = false;
   bool _isExecutingCommands = false;
@@ -117,7 +117,7 @@ class MyGame extends FlameGame {
   Function()? clearCommands;
   double tileSize = 150.0;
 
-  MyGame({int initialLevel = 1, this.onLevelCompleted})
+  Fast({int initialLevel = 1, this.onLevelCompleted})
       : currentLevel = initialLevel;
 
   @override
@@ -187,9 +187,9 @@ class MyGame extends FlameGame {
   @override
   void onAttach() {
     overlays.addEntry('congrats', (context, game) {
-      final myGame = game as MyGame;
-      final stars = myGame.calculateStars();
-      final moveCount = myGame.getMoveCount?.call() ?? 0;
+      final fast = game as Fast;
+      final stars = fast.calculateStars();
+      final moveCount = fast.getMoveCount?.call() ?? 0;
 
       final screenSize = MediaQuery.of(context).size;
       final isSmallScreen = screenSize.width <= 806;
@@ -353,9 +353,9 @@ class MyGame extends FlameGame {
                             ),
                           ),
                           onPressed: () {
-                            myGame.overlays.remove('congrats');
-                            myGame.resetGame();
-                            if (myGame.naikLevel != null) myGame.naikLevel!();
+                            fast.overlays.remove('congrats');
+                            fast.resetGame();
+                            if (fast.naikLevel != null) fast.naikLevel!();
                           },
                           child: Text(
                             'Ulangi',
@@ -389,7 +389,7 @@ class MyGame extends FlameGame {
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => Level(),
+                                builder: (context) => FastLevel(),
                               ),
                             );
                           },
@@ -579,8 +579,8 @@ class MyGame extends FlameGame {
     });
 
     overlays.addEntry('gameFinished', (context, game) {
-      final myGame = game as MyGame;
-      final stars = myGame.calculateStars();
+      final fast = game as Fast;
+      final stars = fast.calculateStars();
 
       final screenSize = MediaQuery.of(context).size;
       final isSmallScreen = screenSize.width <= 806;
@@ -1143,7 +1143,7 @@ class MyGame extends FlameGame {
   }
 }
 
-class Character extends SpriteComponent with HasGameRef<MyGame> {
+class Character extends SpriteComponent with HasGameRef<Fast> {
   // static const double moveDistance = 150;
   late double moveDistance;
   static const double speed = 100;

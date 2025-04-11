@@ -136,22 +136,115 @@ class OpsiLevel extends StatelessWidget {
     double cardHeight = cardWidth * 1.3;
     final titleFontSize = isSmallScreen ? 16.0 : 40.0;
     final lockIconSize = isSmallScreen ? 35.0 : 90.0;
-    final bool isLocked = title != "Tutorial";
+    final bool isLocked = title != "Tutorial" && title != "Fast Track";
 
     return GestureDetector(
       onTap: () {
         if (isLocked) {
           showDialog(
             context: context,
-            builder: (BuildContext context) => AlertDialog(
-              title: Text("Maaf!"),
-              content: Text("Permainan sedang dalam pengembangan!"),
-              actions: [
-                TextButton(
-                  child: Text("Kembali"),
-                  onPressed: () => Navigator.of(context).pop(),
+            builder: (BuildContext context) => Dialog(
+              backgroundColor: Colors.transparent,
+              insetPadding: EdgeInsets.zero,
+              child: Container(
+                width: isSmallScreen ? 235 : 335,
+                height: isSmallScreen ? 221 : 321,
+                decoration: BoxDecoration(
+                  gradient: const RadialGradient(
+                    colors: [Color(0xFFFFFFFF), Color(0xFFF0CEAB)],
+                    center: Alignment.center,
+                    radius: 0.8,
+                  ),
+                  borderRadius: BorderRadius.circular(21),
+                  border: Border.all(
+                    color: const Color(0xFF4E2400),
+                    width: isSmallScreen ? 2 : 4,
+                  ),
                 ),
-              ],
+                padding: EdgeInsets.fromLTRB(
+                  isSmallScreen ? 7 : 14,
+                  isSmallScreen ? 11 : 25,
+                  isSmallScreen ? 7 : 14,
+                  isSmallScreen ? 11 : 25,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Image.asset(
+                          'assets/images/building.png',
+                          height: isSmallScreen ? 97 : 137,
+                          width: isSmallScreen ? 160 : 210,
+                          fit: BoxFit.cover,
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: isSmallScreen ? 5 : 19),
+                    Container(
+                      width: isSmallScreen ? 200 : 232,
+                      height: isSmallScreen ? 37 : 54,
+                      padding: EdgeInsets.symmetric(
+                        vertical: isSmallScreen ? 7 : 7,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius:
+                            BorderRadius.circular(isSmallScreen ? 5 : 10),
+                        border: Border.all(width: 2, color: Colors.black12),
+                      ),
+                      child: Center(
+                        child: RichText(
+                          textAlign: TextAlign.center,
+                          text: TextSpan(
+                            style: TextStyle(
+                              fontFamily: 'Days One',
+                              fontWeight: FontWeight.w600,
+                              fontSize: isSmallScreen ? 8 : 12,
+                              height: isSmallScreen ? 10 / 12 : 20 / 12,
+                              color: const Color(0xFF6A6464),
+                            ),
+                            children: const [
+                              TextSpan(
+                                text: 'Maaf fitur sedang dalam pengembangan',
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: isSmallScreen ? 5 : 19),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFE7B0A),
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isSmallScreen ? 82 : 90,
+                          vertical: isSmallScreen ? 0.1 : 10,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(isSmallScreen ? 30 : 30),
+                          side: const BorderSide(
+                            color: Color.fromARGB(255, 78, 36, 0),
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(
+                        'Kembali',
+                        style: TextStyle(
+                          fontFamily: 'Carter One',
+                          fontSize: isSmallScreen ? 8 : 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           );
         } else {
