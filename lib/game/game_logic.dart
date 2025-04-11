@@ -41,9 +41,22 @@ class FloorTile extends SpriteComponent with HasGameRef<MyGame> {
 
   @override
   Future<void> onLoad() async {
-    await super.onLoad();
+    try {
+      await super.onLoad();
+    } catch (e) {
+      print('Error loading : $e');
+    }
+
     updateSize(gameRef.size.x);
-    await _updateSprite();
+
+    try {
+      await _updateSprite();
+    } catch (e) {
+      print('Error loading sprite: $e');
+    }
+    // await super.onLoad();
+    // updateSize(gameRef.size.x);
+    // await _updateSprite();
   }
 
   @override
@@ -124,7 +137,7 @@ class MyGame extends FlameGame {
 
   @override
   Future<void> onLoad() async {
-    _startEnginePlayer = await FlameAudio.play('startEngine.mp3');
+    // _startEnginePlayer = await FlameAudio.play('startEngine.mp3');
 
     updateTileSize(size.x);
 
@@ -1027,7 +1040,7 @@ class MyGame extends FlameGame {
     _gasPlayer?.stop();
     _startEnginePlayer?.stop();
     FlameAudio.bgm.stop();
-    FlameAudio.play('gameOver.mp3');
+    // FlameAudio.play('gameOver.mp3');
 
     isGameOver = true;
     overlays.add('gameOver');
@@ -1038,17 +1051,20 @@ class MyGame extends FlameGame {
     isExecuting = true;
     _isExecutingCommands = true;
 
+    if (_isFirstCommand) {
+      _startEnginePlayer?.stop();
+      _isFirstCommand = false;
+    }
+
+    // try {
+    //   _gasPlayer = await FlameAudio.loop('gas.mp3');
+    // } catch (e) {
+    //   print('Gagal memulai audio: $e');
+    // }
+
     for (final command in commands) {
       if (isGameOver || isTargetReached) break;
-
-      if (_isFirstCommand) {
-        _startEnginePlayer?.stop();
-        _isFirstCommand = false;
-      }
-
       try {
-        _gasPlayer = await FlameAudio.loop('gas.mp3');
-
         switch (command) {
           case 'MAJU':
             await _character.moveForward();
@@ -1091,7 +1107,7 @@ class MyGame extends FlameGame {
 
   void showCongratsPopup() {
     FlameAudio.bgm.stop();
-    FlameAudio.play('success.mp3');
+    // FlameAudio.play('success.mp3');
 
     if (currentLevel == 6) {
       overlays.add('gameFinished');
@@ -1119,14 +1135,14 @@ class MyGame extends FlameGame {
     add(_character);
 
     FlameAudio.bgm.stop();
-    FlameAudio.play('startEngine.mp3');
+    // FlameAudio.play('startEngine.mp3');
     _isFirstCommand = true;
 
     _gasPlayer?.stop();
     _gasPlayer = null;
 
     FlameAudio.bgm.stop();
-    FlameAudio.play('success.mp3');
+    // FlameAudio.play('success.mp3');
   }
 }
 

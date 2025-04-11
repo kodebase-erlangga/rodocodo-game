@@ -4,19 +4,18 @@ import 'package:rodocodo_game/game/Level.dart';
 import 'game_logic.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flame_audio/flame_audio.dart';
+import 'package:rodocodo_game/game/orientation_guard.dart'; // pastikan path ini benar
 
 bool disableButtons = false;
 
 class GameScreen extends StatefulWidget {
   final int initialLevel;
   final Function(int)? onLevelCompleted;
-  // final Function(bool)? onTargetReached;
 
   const GameScreen({
     super.key,
     required this.initialLevel,
     this.onLevelCompleted,
-    // this.onTargetReached,
   });
 
   @override
@@ -32,9 +31,11 @@ class _GameScreenState extends State<GameScreen> {
   final bool _isGameOver = false;
   int _lastExecutedIndex = 0;
   late MyGame _game;
+  AudioPlayer? _gasPlayer;
 
   @override
   void dispose() {
+    _gasPlayer?.stop();
     FlameAudio.bgm.stop();
     super.dispose();
   }
@@ -71,16 +72,26 @@ class _GameScreenState extends State<GameScreen> {
     int start = _lastExecutedIndex;
     int end = commands.length;
 
+    _gasPlayer = await FlameAudio.loop('gas.mp3');
+
     for (int i = start; i < end; i++) {
       setState(() {
         _currentStep = i;
       });
+      try {
+        await _game.executeCommands([commands[i]]);
+      } catch (e) {
+        print("error execute: $e");
+      }
 
-      await _game.executeCommands([commands[i]]);
-      await Future.delayed(const Duration(milliseconds: 500));
+      try {
+        await Future.delayed(const Duration(milliseconds: 500));
+      } catch (e) {
+        print("error delayed: $e");
+      }
 
-      // if (_game.isGameOver || _game.isTargetReached) {
       if (_game.isGameOver || _game.isTargetReached) {
+        await _gasPlayer?.stop();
         setState(() {
           commands.clear();
           _currentStep = -1;
@@ -90,11 +101,6 @@ class _GameScreenState extends State<GameScreen> {
         });
         return;
       }
-      // } else if (_game.showGameOver()) {
-      //   setState(() {
-      //     _isExecuting = false;
-      //   });
-      // }
 
       setState(() {
         _lastExecutedIndex = i + 1;
@@ -145,6 +151,7 @@ class _GameScreenState extends State<GameScreen> {
         moveCount = 0;
         commands.clear();
         _lastExecutedIndex = 0;
+        disableButtons = false;
       });
     };
     _game.getMoveCount = () => moveCount;
@@ -173,147 +180,55 @@ class _GameScreenState extends State<GameScreen> {
 
     debugPrint("Screen Width: $ukuranLayar, isTablet: $isSmallScreen");
 
-    return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: isSmallScreen ? 60 : 40,
-        title: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Level ${_game.currentLevel}",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: isSmallScreen ? 18 : 17,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const Spacer(),
-            Text(
-              "Total Langkah: $moveCount",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: isSmallScreen ? 18 : 17,
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: const Color(0xffFE7B0A),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => Level(),
-              ),
-            );
-          },
-        ),
-      ),
-      backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          Column(
+    // Bungkus seluruh tampilan GameScreen dengan OrientationGuard.
+    return OrientationGuard(
+      child: Scaffold(
+        appBar: AppBar(
+          toolbarHeight: isSmallScreen ? 60 : 40,
+          title: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 5),
-              Row(
-                children: [
-                  if (!isSmallScreen)
-                    Column(
-                      spacing: 8,
-                      children: [
-                        _buildControlButton(
-                          'assets/icons/walk_off.svg',
-                          () => addCommand('MAJU'),
-                          size: isSmallScreen ? 50 : 30,
-                        ),
-                        _buildControlButton(
-                          'assets/icons/left_off.svg',
-                          () => addCommand('KIRI'),
-                          size: isSmallScreen ? 50 : 30,
-                        ),
-                        _buildControlButton(
-                          'assets/icons/right_off.svg',
-                          () => addCommand('KANAN'),
-                          size: isSmallScreen ? 50 : 30,
-                        ),
-                      ],
-                    ),
-                  Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.all(isSmallScreen ? 60 : 25),
-                      child: SizedBox(
-                        width: MediaQuery.of(context).size.width *
-                            (isSmallScreen ? 0.5 : 0.7),
-                        height: gameHeight,
-                        child: GameWidget(game: _game),
-                      ),
-                    ),
-                  ),
-                ],
+              Text(
+                "Level ${_game.currentLevel}",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: isSmallScreen ? 18 : 17,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              Container(
-                padding: EdgeInsets.all(isSmallScreen ? 8 : 0),
-                color: Colors.white,
-                child: Column(
+              const Spacer(),
+              Text(
+                "Total Langkah: $moveCount",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: isSmallScreen ? 18 : 17,
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xffFE7B0A),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => Level(),
+                ),
+              );
+            },
+          ),
+        ),
+        backgroundColor: Colors.white,
+        body: Stack(
+          children: [
+            Column(
+              children: [
+                const SizedBox(height: 5),
+                Row(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _buildControlButton(
-                          'assets/icons/run.svg',
-                          runCommands,
-                          size: isSmallScreen ? 40 : 30,
-                        ),
-                        Card(
-                          margin: EdgeInsets.all(isSmallScreen ? 10 : 3),
-                          elevation: 5,
-                          child: Container(
-                            padding: EdgeInsets.all(isSmallScreen ? 8 : 8),
-                            width:
-                                isSmallScreen ? ukuranLayar.width * 0.6 : 500,
-                            constraints: BoxConstraints(
-                              minHeight: isSmallScreen ? 50 : 40,
-                              maxHeight: isSmallScreen ? 150 : 100,
-                            ),
-                            child: SingleChildScrollView(
-                              child: LayoutBuilder(
-                                builder: (context, constraints) {
-                                  final iconSize = isSmallScreen ? 35.0 : 30.0;
-                                  final spacing = isSmallScreen ? 8.0 : 6.0;
-
-                                  return Wrap(
-                                    spacing: spacing,
-                                    runSpacing: spacing,
-                                    children:
-                                        commands.asMap().entries.map((entry) {
-                                      final index = entry.key;
-                                      final command = entry.value;
-                                      final isActive = index == _currentStep;
-
-                                      return SvgPicture.asset(
-                                        'assets/icons/${_getCommandAsset(command)}_${isActive ? 'on' : 'off'}.svg',
-                                        width: iconSize,
-                                        height: iconSize,
-                                      );
-                                    }).toList(),
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
-                        ),
-                        _buildControlButton(
-                          'assets/icons/trash.svg',
-                          clearCommands,
-                          size: isSmallScreen ? 40 : 40,
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: isSmallScreen ? 10 : 0),
-                    if (isSmallScreen)
-                      Wrap(
-                        spacing: 8,
+                    if (!isSmallScreen)
+                      Column(
                         children: [
                           _buildControlButton(
                             'assets/icons/walk_off.svg',
@@ -332,12 +247,107 @@ class _GameScreenState extends State<GameScreen> {
                           ),
                         ],
                       ),
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.all(isSmallScreen ? 60 : 25),
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width *
+                              (isSmallScreen ? 0.5 : 0.7),
+                          height: gameHeight,
+                          child: GameWidget(game: _game),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
-              ),
-            ],
-          ),
-        ],
+                Container(
+                  padding: EdgeInsets.all(isSmallScreen ? 8 : 0),
+                  color: Colors.white,
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _buildControlButton(
+                            'assets/icons/run.svg',
+                            runCommands,
+                            size: isSmallScreen ? 40 : 30,
+                          ),
+                          Card(
+                            margin: EdgeInsets.all(isSmallScreen ? 10 : 3),
+                            elevation: 5,
+                            child: Container(
+                              padding: EdgeInsets.all(isSmallScreen ? 8 : 8),
+                              width:
+                                  isSmallScreen ? ukuranLayar.width * 0.6 : 500,
+                              constraints: BoxConstraints(
+                                minHeight: isSmallScreen ? 50 : 40,
+                                maxHeight: isSmallScreen ? 150 : 100,
+                              ),
+                              child: SingleChildScrollView(
+                                child: LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    final iconSize =
+                                        isSmallScreen ? 35.0 : 30.0;
+                                    final spacing = isSmallScreen ? 8.0 : 6.0;
+
+                                    return Wrap(
+                                      spacing: spacing,
+                                      runSpacing: spacing,
+                                      children:
+                                          commands.asMap().entries.map((entry) {
+                                        final index = entry.key;
+                                        final command = entry.value;
+                                        final isActive = index == _currentStep;
+
+                                        return SvgPicture.asset(
+                                          'assets/icons/${_getCommandAsset(command)}_${isActive ? 'on' : 'off'}.svg',
+                                          width: iconSize,
+                                          height: iconSize,
+                                        );
+                                      }).toList(),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                          _buildControlButton(
+                            'assets/icons/trash.svg',
+                            clearCommands,
+                            size: isSmallScreen ? 40 : 40,
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: isSmallScreen ? 10 : 0),
+                      if (isSmallScreen)
+                        Wrap(
+                          spacing: 8,
+                          children: [
+                            _buildControlButton(
+                              'assets/icons/walk_off.svg',
+                              () => addCommand('MAJU'),
+                              size: isSmallScreen ? 50 : 30,
+                            ),
+                            _buildControlButton(
+                              'assets/icons/left_off.svg',
+                              () => addCommand('KIRI'),
+                              size: isSmallScreen ? 50 : 30,
+                            ),
+                            _buildControlButton(
+                              'assets/icons/right_off.svg',
+                              () => addCommand('KANAN'),
+                              size: isSmallScreen ? 50 : 30,
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

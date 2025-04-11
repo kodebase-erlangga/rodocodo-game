@@ -1,27 +1,32 @@
-// ignore: duplicate_ignore
-// ignore: file_names, duplicate_ignore
-// ignore: file_names
-// ignore_for_file: file_names
-
 import 'package:flutter/material.dart';
-import 'package:rodocodo_game/game/opsiLevel.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:rodocodo_game/game/orientation_guard.dart' as og;
+import 'package:rodocodo_game/game/opsiLevel.dart' as ol;
 
 class MainMenuScreen extends StatelessWidget {
   const MainMenuScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    return og.OrientationGuard(
+      child: const _MainMenuContent(),
+    );
+  }
+}
+
+class _MainMenuContent extends StatelessWidget {
+  const _MainMenuContent();
+
+  @override
+  Widget build(BuildContext context) {
     final ukuranLayar = MediaQuery.of(context).size;
     final isSmallScreen = ukuranLayar.width >= 806;
-
-    debugPrint("Screen Width: $ukuranLayar, isTablet: $isSmallScreen");
 
     return Scaffold(
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage("assets/images/background.png"),
             fit: BoxFit.cover,
@@ -37,20 +42,21 @@ class MainMenuScreen extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => OpsiLevel()),
+                      MaterialPageRoute(builder: (context) => const ol.OpsiLevel()),
                     );
                   },
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.symmetric(
-                        horizontal: isSmallScreen ? 45 : 25,
-                        vertical: isSmallScreen ? 20 : 15),
-                    textStyle: TextStyle(fontSize: 24),
+                      horizontal: isSmallScreen ? 45 : 25,
+                      vertical: isSmallScreen ? 20 : 15,
+                    ),
+                    textStyle: const TextStyle(fontSize: 24),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    backgroundColor: Color(0xFF36D206),
+                    backgroundColor: const Color(0xFF36D206),
                     foregroundColor: Colors.white,
-                    side: BorderSide(color: Colors.black, width: 4),
+                    side: const BorderSide(color: Colors.black, width: 4),
                     elevation: 6,
                   ),
                   child: Text(
@@ -59,9 +65,8 @@ class MainMenuScreen extends StatelessWidget {
                       fontSize: isSmallScreen ? 24 : 18,
                       shadows: [
                         Shadow(
-                          // ignore: deprecated_member_use
                           color: Colors.black.withOpacity(0.5),
-                          offset: Offset(3, 3),
+                          offset: const Offset(3, 3),
                           blurRadius: 5,
                         ),
                       ],
@@ -70,7 +75,7 @@ class MainMenuScreen extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: 40)
+            const SizedBox(height: 40),
           ],
         ),
       ),

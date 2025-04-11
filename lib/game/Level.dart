@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:rodocodo_game/game/game_widget.dart';
 import 'package:rodocodo_game/main.dart';
-import 'package:rodocodo_game/game/opsiLevel.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:rodocodo_game/game/orientation_guard.dart' as og;
+import 'package:rodocodo_game/game/opsiLevel.dart' as ol;
+import 'package:shared_preferences/shared_preferences.dart'; 
 
 class Level extends StatefulWidget {
   const Level({super.key});
@@ -73,81 +74,79 @@ class _LevelState extends State<Level> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
-    double screenHeight = MediaQuery.of(context).size.height;
-    bool isTablet = screenWidth >= 806;
-    debugPrint("Screen Width: $screenWidth, isTablet: $isTablet");
-
-    // ignore: deprecated_member_use
-    return WillPopScope(
-      onWillPop: () async {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => OpsiLevel(),
-          ),
-        );
-        return false;
-      },
-      child: Stack(
-        children: [
-          SizedBox.expand(
-            child: Container(
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage("assets/images/background_kota.jpg"),
-                  fit: BoxFit.cover,
-                  colorFilter: ColorFilter.mode(
-                    // ignore: deprecated_member_use
-                    Colors.black.withOpacity(0.5),
-                    BlendMode.darken,
+    return og.OrientationGuard(
+      child: WillPopScope(
+        onWillPop: () async {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ol.OpsiLevel(),
+            ),
+          );
+          return false; // Mencegah pop default.
+        },
+        child: Stack(
+          children: [
+            SizedBox.expand(
+              child: Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage("assets/images/background_kota.jpg"),
+                    fit: BoxFit.cover,
+                    colorFilter: ColorFilter.mode(
+                      Colors.black.withOpacity(0.5),
+                      BlendMode.darken,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          Positioned(
-            top: screenHeight * 0.05,
-            left: screenWidth * 0.05,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => OpsiLevel(),
-                  ),
-                );
-              },
-              child: SvgPicture.asset(
-                'assets/icons/back.svg',
-                width: isTablet ? 40 : 40,
-                height: isTablet ? 40 : 40,
+            Positioned(
+              top: MediaQuery.of(context).size.height * 0.05,
+              left: MediaQuery.of(context).size.width * 0.05,
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ol.OpsiLevel(),
+                    ),
+                  );
+                },
+                child: SvgPicture.asset(
+                  'assets/icons/back.svg',
+                  width: 40,
+                  height: 40,
+                ),
               ),
             ),
-          ),
-          Center(
-            child: FutureBuilder<Map<int, int>>(
-              future: _starsFuture,
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return Center(child: CircularProgressIndicator());
-                }
-                final stars = snapshot.data!;
+            Center(
+              child: FutureBuilder<Map<int, int>>(
+                future: _starsFuture,
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                  final stars = snapshot.data!;
+                  // Tentukan ukuran layar dan mode tablet
+                  final screenSize = MediaQuery.of(context).size;
+                  final isTablet = screenSize.width >= 806;
 
-                return Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildLevelRow(
-                        1, 3, stars, isTablet, screenWidth, screenHeight),
-                    SizedBox(height: isTablet ? 30 : 10),
-                    _buildLevelRow(
-                        4, 6, stars, isTablet, screenWidth, screenHeight),
-                  ],
-                );
-              },
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildLevelRow(1, 3, stars, isTablet, screenSize.width,
+                          screenSize.height),
+                      SizedBox(height: isTablet ? 30 : 10),
+                      _buildLevelRow(4, 6, stars, isTablet, screenSize.width,
+                          screenSize.height),
+                    ],
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -202,7 +201,7 @@ class _LevelState extends State<Level> with RouteAware {
             ),
           ),
           Transform.translate(
-            offset: isTablet ? Offset(0, 25) : Offset(0, 25),
+            offset: Offset(0, 25),
             child: Text(
               '$level',
               style: TextStyle(
