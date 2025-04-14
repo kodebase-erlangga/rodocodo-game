@@ -6,7 +6,7 @@ import 'package:rodocodo_game/game/game_widget.dart';
 import 'package:rodocodo_game/main.dart';
 import 'package:rodocodo_game/game/orientation_guard.dart' as og;
 import 'package:rodocodo_game/game/opsiLevel.dart' as ol;
-import 'package:shared_preferences/shared_preferences.dart'; 
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Level extends StatefulWidget {
   const Level({super.key});
@@ -74,6 +74,9 @@ class _LevelState extends State<Level> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width <= 806;
+
     return og.OrientationGuard(
       child: WillPopScope(
         onWillPop: () async {
@@ -83,7 +86,7 @@ class _LevelState extends State<Level> with RouteAware {
               builder: (context) => ol.OpsiLevel(),
             ),
           );
-          return false; // Mencegah pop default.
+          return false;
         },
         child: Stack(
           children: [
@@ -115,8 +118,8 @@ class _LevelState extends State<Level> with RouteAware {
                 },
                 child: SvgPicture.asset(
                   'assets/icons/back.svg',
-                  width: 40,
-                  height: 40,
+                  width: isSmallScreen ? 40 : 60,
+                  height: isSmallScreen ? 40 : 60,
                 ),
               ),
             ),
@@ -130,7 +133,7 @@ class _LevelState extends State<Level> with RouteAware {
                   final stars = snapshot.data!;
                   // Tentukan ukuran layar dan mode tablet
                   final screenSize = MediaQuery.of(context).size;
-                  final isTablet = screenSize.width >= 806;
+                  final isTablet = screenSize.width >= 1024;
 
                   return Column(
                     mainAxisAlignment: MainAxisAlignment.center,

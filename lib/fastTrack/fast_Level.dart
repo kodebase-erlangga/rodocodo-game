@@ -3,11 +3,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:rodocodo_game/fastTrack/fast_gameWidget.dart';
-import 'package:rodocodo_game/game/game_widget.dart';
 import 'package:rodocodo_game/main.dart';
 import 'package:rodocodo_game/game/orientation_guard.dart' as og;
 import 'package:rodocodo_game/game/opsiLevel.dart' as ol;
-import 'package:shared_preferences/shared_preferences.dart'; 
+import 'package:shared_preferences/shared_preferences.dart';
 
 class FastLevel extends StatefulWidget {
   const FastLevel({super.key});
@@ -131,7 +130,7 @@ class _FastLevelState extends State<FastLevel> with RouteAware {
                   final stars = snapshot.data!;
                   // Tentukan ukuran layar dan mode tablet
                   final screenSize = MediaQuery.of(context).size;
-                  final isTablet = screenSize.width >= 806;
+                  final isTablet = screenSize.width >= 1024;
 
                   return Column(
                     mainAxisAlignment: MainAxisAlignment.center,

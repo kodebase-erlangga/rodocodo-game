@@ -160,7 +160,7 @@ class _GameScreenState extends State<GameScreen> {
   @override
   Widget build(BuildContext context) {
     final ukuranLayar = MediaQuery.of(context).size;
-    final isSmallScreen = ukuranLayar.width >= 806;
+    final isSmallScreen = ukuranLayar.width >= 1024;
 
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
@@ -180,7 +180,6 @@ class _GameScreenState extends State<GameScreen> {
 
     debugPrint("Screen Width: $ukuranLayar, isTablet: $isSmallScreen");
 
-    // Bungkus seluruh tampilan GameScreen dengan OrientationGuard.
     return OrientationGuard(
       child: Scaffold(
         appBar: AppBar(
@@ -219,42 +218,76 @@ class _GameScreenState extends State<GameScreen> {
             },
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFFB8C14C),
         body: Stack(
           children: [
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: Image.asset(
+                'assets/images/pohon.png',
+                fit: BoxFit.cover,
+                height: double.infinity,
+              ),
+            ),
+            Positioned(
+              right: 0,
+              top: 0,
+              bottom: 0,
+              child: Image.asset(
+                'assets/images/pohon.png',
+                fit: BoxFit.cover,
+                height: double.infinity,
+              ),
+            ),
             Column(
               children: [
                 const SizedBox(height: 5),
                 Row(
                   children: [
                     if (!isSmallScreen)
-                      Column(
-                        children: [
-                          _buildControlButton(
-                            'assets/icons/walk_off.svg',
-                            () => addCommand('MAJU'),
-                            size: isSmallScreen ? 50 : 30,
-                          ),
-                          _buildControlButton(
-                            'assets/icons/left_off.svg',
-                            () => addCommand('KIRI'),
-                            size: isSmallScreen ? 50 : 30,
-                          ),
-                          _buildControlButton(
-                            'assets/icons/right_off.svg',
-                            () => addCommand('KANAN'),
-                            size: isSmallScreen ? 50 : 30,
-                          ),
-                        ],
+                      Container(
+                        margin: EdgeInsets.only(left: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: EdgeInsets.all(8),
+                        child: Column(
+                          children: [
+                            _buildControlButton(
+                              'assets/icons/walk_off.svg',
+                              () => addCommand('MAJU'),
+                              size: isSmallScreen ? 50 : 30,
+                            ),
+                            _buildControlButton(
+                              'assets/icons/left_off.svg',
+                              () => addCommand('KIRI'),
+                              size: isSmallScreen ? 50 : 30,
+                            ),
+                            _buildControlButton(
+                              'assets/icons/right_off.svg',
+                              () => addCommand('KANAN'),
+                              size: isSmallScreen ? 50 : 30,
+                            ),
+                          ],
+                        ),
                       ),
                     Expanded(
                       child: Padding(
-                        padding: EdgeInsets.all(isSmallScreen ? 60 : 25),
+                        padding: EdgeInsets.fromLTRB(
+                          isSmallScreen ? 200 : 60, // left
+                          isSmallScreen ? 30 : 30, // top
+                          isSmallScreen ? 200 : 100, // right
+                          isSmallScreen ? 10 : 15, // bottom
+                        ),
                         child: SizedBox(
-                          width: MediaQuery.of(context).size.width *
-                              (isSmallScreen ? 0.5 : 0.7),
                           height: gameHeight,
-                          child: GameWidget(game: _game),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: GameWidget(game: _game),
+                          ),
                         ),
                       ),
                     ),
@@ -262,7 +295,7 @@ class _GameScreenState extends State<GameScreen> {
                 ),
                 Container(
                   padding: EdgeInsets.all(isSmallScreen ? 8 : 0),
-                  color: Colors.white,
+                  color: Color(0XFFB8C14C),
                   child: Column(
                     children: [
                       Row(

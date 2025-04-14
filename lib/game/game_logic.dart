@@ -63,7 +63,7 @@ class FloorTile extends SpriteComponent with HasGameRef<MyGame> {
   }
 
   void updateSize(double screenWidth) {
-    double tileSize = screenWidth >= 806 ? 150 : 75;
+    double tileSize = screenWidth >= 1024 ? 150 : 75;
     size = Vector2.all(tileSize);
   }
 
@@ -121,7 +121,9 @@ class MyGame extends FlameGame {
       : currentLevel = initialLevel;
 
   @override
-  Color backgroundColor() => Colors.white;
+  // Color backgroundColor() => Color(0xFFE8D96F).withOpacity(0.5);
+  // Color backgroundColor() => Color(0xFFE8D96F);
+  Color backgroundColor() => Colors.transparent;
 
   @override
   Future<void> onRemove() async {
@@ -134,8 +136,6 @@ class MyGame extends FlameGame {
 
   @override
   Future<void> onLoad() async {
-    // _startEnginePlayer = await FlameAudio.play('startEngine.mp3');
-
     updateTileSize(size.x);
 
     _generateFloorTiles();
@@ -151,7 +151,7 @@ class MyGame extends FlameGame {
   }
 
   void updateTileSize(double screenWidth) {
-    tileSize = screenWidth >= 806 ? 150.0 : 75.0;
+    tileSize = screenWidth >= 1024 ? 150.0 : 75.0;
   }
 
   int getOptimalSteps() {
@@ -192,13 +192,12 @@ class MyGame extends FlameGame {
       final moveCount = myGame.getMoveCount?.call() ?? 0;
 
       final screenSize = MediaQuery.of(context).size;
-      final isSmallScreen = screenSize.width <= 806;
+      final isSmallScreen = screenSize.width <= 1024;
 
       return Stack(
         children: [
           Center(
             child: Dialog(
-              backgroundColor: Colors.transparent,
               insetPadding: EdgeInsets.zero,
               child: Container(
                 width: isSmallScreen ? 100 : 150,
@@ -415,7 +414,7 @@ class MyGame extends FlameGame {
 
     overlays.addEntry('gameOver', (context, game) {
       final screenSize = MediaQuery.of(context).size;
-      final isSmallScreen = screenSize.width <= 806;
+      final isSmallScreen = screenSize.width <= 1024;
 
       return Center(
         child: Dialog(
@@ -583,7 +582,7 @@ class MyGame extends FlameGame {
       final stars = myGame.calculateStars();
 
       final screenSize = MediaQuery.of(context).size;
-      final isSmallScreen = screenSize.width <= 806;
+      final isSmallScreen = screenSize.width <= 1024;
 
       return Center(
         child: Dialog(
@@ -1153,13 +1152,14 @@ class Character extends SpriteComponent with HasGameRef<MyGame> {
   Completer<void>? _movementCompleter;
   Completer<void>? _rotationCompleter;
 
-  Character() : super(size: Vector2.all(80), anchor: Anchor.center);
+  Character()
+      : super(size: Vector2.all(80), anchor: Anchor.center); //ukuran karakter
 
   @override
   Future<void> onLoad() async {
     sprite = await gameRef.loadSprite('character.png');
     updateSize(gameRef.size.x);
-    moveDistance = (gameRef.size.x >= 806) ? 150 : 75;
+    moveDistance = (gameRef.size.x >= 1024) ? 150 : 75;
   }
 
   @override
@@ -1169,8 +1169,11 @@ class Character extends SpriteComponent with HasGameRef<MyGame> {
   }
 
   void updateSize(double screenWidth) {
-    double characterSize = screenWidth >= 806 ? 80 : 40;
-    size = Vector2.all(characterSize);
+    if (screenWidth >= 1024) {
+      size = Vector2(80, 40);
+    } else {
+      size = Vector2(40, 30);
+    }
   }
 
   Future<void> moveForward() async {

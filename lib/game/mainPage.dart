@@ -20,7 +20,7 @@ class _MainMenuContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ukuranLayar = MediaQuery.of(context).size;
-    final isSmallScreen = ukuranLayar.width >= 806;
+    final isSmallScreen = ukuranLayar.width >= 1024;
 
     return Scaffold(
       body: Container(
@@ -42,7 +42,8 @@ class _MainMenuContent extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const ol.OpsiLevel()),
+                      MaterialPageRoute(
+                          builder: (context) => const ol.OpsiLevel()),
                     );
                   },
                   style: ElevatedButton.styleFrom(

@@ -131,7 +131,7 @@ class OpsiLevel extends StatelessWidget {
 
   Widget _buildLevelCard(String title, String imagePath, BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
-    final isSmallScreen = screenSize.width <= 806;
+    final isSmallScreen = screenSize.width <= 1024;
     double cardWidth = isSmallScreen ? screenSize.width * 0.23 : 300;
     double cardHeight = cardWidth * 1.3;
     final titleFontSize = isSmallScreen ? 16.0 : 40.0;
