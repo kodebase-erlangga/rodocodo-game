@@ -33,52 +33,36 @@ class FloorTile extends SpriteComponent with HasGameRef<MyGame> {
     }
   }
 
-  // FloorTile({
-  //   required this.id,
-  //   required TileType type,
-  //   required Vector2 position,
-  // })  : _type = type,
-  //       super(position: position, size: Vector2.all(150));
-
+  // Konstruktor utama
   FloorTile({
     required this.id,
     required TileType type,
     required Vector2 position,
   })  : _type = type,
-        super(
-          position: position,
-          size: Vector2.all(150),
-          priority: 0,
-        );
+        super(position: position, size: Vector2.all(150));
 
   @override
   Future<void> onLoad() async {
-    try {
-      await super.onLoad();
-    } catch (e) {
-      print('Error loading : $e');
-    }
-
+    await super.onLoad();
+    // Pastikan ukuran diupdate berdasarkan ukuran layar
     updateSize(gameRef.size.x);
-
-    try {
-      await _updateSprite();
-    } catch (e) {
-      print('Error loading sprite: $e');
-    }
+    await _updateSprite();
   }
 
+  // Perbarui ukuran tile ketika layar diubah
   @override
   void onGameResize(Vector2 size) {
     super.onGameResize(size);
     updateSize(size.x);
   }
 
+  // Update ukuran tile berdasarkan lebar layar
   void updateSize(double screenWidth) {
     double tileSize = screenWidth >= 1024 ? 150 : 75;
     size = Vector2.all(tileSize);
   }
 
+  // Update sprite berdasarkan tipe
   Future<void> _updateSprite() async {
     switch (_type) {
       case TileType.start:
@@ -116,9 +100,10 @@ class MyGame extends FlameGame {
   late Character _character;
   bool isExecuting = false;
   bool _isExecutingCommands = false;
-  List<List<TileType?>> tileGrid = [];
-  late double startX;
-  late double startY;
+  // List<List<TileType?>> tileGrid = [];
+  List<List<FloorTile?>> tileGrid = [];
+  double startX = 0;
+  double startY = 0;
   late Vector2 startTileCenter;
   bool isGameOver = false;
   Function()? naikLevel;
@@ -131,7 +116,6 @@ class MyGame extends FlameGame {
   bool _isFirstCommand = true;
   Function()? clearCommands;
   double tileSize = 150.0;
-  bool isCharacterAdded = false;
 
   MyGame({int initialLevel = 1, this.onLevelCompleted})
       : currentLevel = initialLevel;
@@ -148,28 +132,45 @@ class MyGame extends FlameGame {
     super.onRemove();
   }
 
+  @override
   Future<void> onLoad() async {
     updateTileSize(size.x);
-    _generateFloorTiles();
 
-    // Buat instance karakter hanya sekali
+    _generateFloorTiles();
     _character = Character();
     _character.position = startTileCenter;
     add(_character);
-    isCharacterAdded = true;
   }
 
   @override
   void onGameResize(Vector2 size) {
     super.onGameResize(size);
+    // updateTileSize(size.x);
+    updateGridStartPosition(size, tileGrid[0].length, tileGrid.length, 150.0);
+    // rebuildTilePositions();
+  }
 
-    updateTileSize(size.x);
-    _generateFloorTiles();
+  void rebuildTilePositions() {
+    double tileSize = 150.0;
 
-    // Perbarui posisi karakter tanpa menambah ulang
-    if (isCharacterAdded) {
-      _character.position = startTileCenter;
+    for (int y = 0; y < tileGrid.length; y++) {
+      for (int x = 0; x < tileGrid[y].length; x++) {
+        final tile = tileGrid[y][x];
+
+        if (tile != null) {
+          tile.position = Vector2(
+            startX + (x * tileSize),
+            startY + (y * tileSize),
+          );
+        }
+      }
     }
+  }
+
+  void updateGridStartPosition(
+      Vector2 size, int gridWidth, int gridHeight, double tileSize) {
+    startX = (size.x - (gridWidth * tileSize)) / 2;
+    startY = (size.y - (gridHeight * tileSize)) / 2;
   }
 
   void updateTileSize(double screenWidth) {
@@ -786,8 +787,8 @@ class MyGame extends FlameGame {
       startX = (size.x - columns * tileSize) / 2;
       startY = (size.y - tileSize) / 2;
 
-      tileGrid = List.generate(
-          rows, (row) => List.filled(columns, TileType.normal_landscape));
+      tileGrid =
+          List.generate(rows, (row) => List<FloorTile?>.filled(columns, null));
 
       for (int row = 0; row < rows; row++) {
         for (int col = 0; col < columns; col++) {
@@ -796,15 +797,14 @@ class MyGame extends FlameGame {
             startX + col * tileSize,
             startY + row * tileSize,
           );
-
           final type = col == 0
               ? TileType.start
               : col == columns - 1
                   ? TileType.finish
                   : TileType.normal_landscape;
 
-          tileGrid[row][col] = type;
           final tile = FloorTile(id: id, type: type, position: position);
+          tileGrid[row][col] = tile;
           add(tile);
 
           if (type == TileType.start) {
@@ -812,245 +812,204 @@ class MyGame extends FlameGame {
           }
         }
       }
-    } else if (currentLevel == 2) {
-      const rows = 3;
-      const columns = 2;
-      startX = (size.x - columns * tileSize) / 2;
-      startY = (size.y - rows * tileSize) / 2;
+    } 
+    
+    else if (currentLevel == 3) {
+    //   const rows = 3;
+    //   const columns = 3;
+    //   startX = (size.x - columns * tileSize) / 2;
+    //   startY = (size.y - rows * tileSize) / 2;
 
-      tileGrid = List.generate(rows, (row) => List.filled(columns, null));
+    //   tileGrid = List.generate(rows, (row) => List.filled(columns, null));
 
-      for (int row = 0; row < rows; row++) {
-        for (int col = 0; col < columns; col++) {
-          TileType? type;
+    //   for (int row = 0; row < rows; row++) {
+    //     for (int col = 0; col < columns; col++) {
+    //       TileType? type;
 
-          if (row == 0) {
-            if (col == 0) {
-              type = TileType.start;
-            } else {
-              type = TileType.belok_enamsembilan;
-            }
-          } else if (row == 1 && col == 1) {
-            type = TileType.normal;
-          } else if (row == 2 && col == 1) {
-            type = TileType.belok_sembilannol;
-          } else if (row == 2 && col == 0) {
-            type = TileType.finish;
-          }
+    //       if (row == 0) {
+    //         if (col == 0) {
+    //           type = TileType.start;
+    //         } else if (row == 0 && col == 1) {
+    //           type = TileType.belok_enamsembilan;
+    //         } else {
+    //           type = null;
+    //         }
+    //       } else if (row == 1 && col == 1) {
+    //         type = TileType.normal;
+    //       } else if (row == 2 && col == 1) {
+    //         type = TileType.belok_noltiga;
+    //       } else if (row == 2 && col == 2) {
+    //         type = TileType.finish;
+    //       }
 
-          if (type != null) {
-            final id = 'row${row}_col$col';
-            final position = Vector2(
-              startX + col * tileSize,
-              startY + row * tileSize,
-            );
+    //       if (type != null) {
+    //         final id = 'row${row}_col$col';
+    //         final position = Vector2(
+    //           startX + col * tileSize,
+    //           startY + row * tileSize,
+    //         );
 
-            tileGrid[row][col] = type;
-            final tile = FloorTile(id: id, type: type, position: position);
-            add(tile);
+    //         tileGrid[row][col] = type;
+    //         final tile = FloorTile(id: id, type: type, position: position);
+    //         add(tile);
 
-            if (type == TileType.start) {
-              startTileCenter = position + Vector2(tileSize / 2, tileSize / 2);
-            }
-          }
-        }
-      }
-    } else if (currentLevel == 3) {
-      const rows = 3;
-      const columns = 3;
-      startX = (size.x - columns * tileSize) / 2;
-      startY = (size.y - rows * tileSize) / 2;
+    //         if (type == TileType.start) {
+    //           startTileCenter = position + Vector2(tileSize / 2, tileSize / 2);
+    //         }
+    //       }
+    //     }
+    //   }
+    // } else if (currentLevel == 4) {
+    //   const rows = 3;
+    //   const columns = 4;
+    //   startX = (size.x - columns * tileSize) / 2;
+    //   startY = (size.y - rows * tileSize) / 2;
 
-      tileGrid = List.generate(rows, (row) => List.filled(columns, null));
+    //   tileGrid = List.generate(rows, (row) => List.filled(columns, null));
 
-      for (int row = 0; row < rows; row++) {
-        for (int col = 0; col < columns; col++) {
-          TileType? type;
+    //   for (int row = 0; row < rows; row++) {
+    //     for (int col = 0; col < columns; col++) {
+    //       TileType? type;
 
-          if (row == 0) {
-            if (col == 0) {
-              type = TileType.start;
-            } else if (row == 0 && col == 1) {
-              type = TileType.belok_enamsembilan;
-            } else {
-              type = null;
-            }
-          } else if (row == 1 && col == 1) {
-            type = TileType.normal;
-          } else if (row == 2 && col == 1) {
-            type = TileType.belok_noltiga;
-          } else if (row == 2 && col == 2) {
-            type = TileType.finish;
-          }
+    //       if (row == 0) {
+    //         if (col == 0) {
+    //           type = TileType.start;
+    //         } else if (row == 0 && col == 1) {
+    //           type = TileType.belok_enamsembilan;
+    //         } else {
+    //           type = null;
+    //         }
+    //       } else if (row == 1 && (col == 1)) {
+    //         type = TileType.belok_noltiga;
+    //       } else if (row == 1 && (col == 2)) {
+    //         type = TileType.normal_landscape2;
+    //       } else if (row == 1 && (col == 3)) {
+    //         type = TileType.belok_enamsembilan;
+    //       } else if (row == 2 && (col == 0 || col == 1 || col == 2)) {
+    //         type = null;
+    //       } else if (row == 2 && col == 3) {
+    //         type = TileType.finish;
+    //       }
 
-          if (type != null) {
-            final id = 'row${row}_col$col';
-            final position = Vector2(
-              startX + col * tileSize,
-              startY + row * tileSize,
-            );
+    //       if (type != null) {
+    //         final id = 'row${row}_col$col';
+    //         final position = Vector2(
+    //           startX + col * tileSize,
+    //           startY + row * tileSize,
+    //         );
 
-            tileGrid[row][col] = type;
-            final tile = FloorTile(id: id, type: type, position: position);
-            add(tile);
+    //         tileGrid[row][col] = type;
+    //         final tile = FloorTile(id: id, type: type, position: position);
+    //         add(tile);
 
-            if (type == TileType.start) {
-              startTileCenter = position + Vector2(tileSize / 2, tileSize / 2);
-            }
-          }
-        }
-      }
-    } else if (currentLevel == 4) {
-      const rows = 3;
-      const columns = 4;
-      startX = (size.x - columns * tileSize) / 2;
-      startY = (size.y - rows * tileSize) / 2;
+    //         if (type == TileType.start) {
+    //           startTileCenter = position + Vector2(tileSize / 2, tileSize / 2);
+    //         }
+    //       }
+    //     }
+    //   }
+    // } else if (currentLevel == 5) {
+    //   const rows = 2;
+    //   const columns = 5;
+    //   startX = (size.x - columns * tileSize) / 2;
+    //   startY = (size.y - rows * tileSize) / 2;
 
-      tileGrid = List.generate(rows, (row) => List.filled(columns, null));
+    //   tileGrid = List.generate(rows, (row) => List.filled(columns, null));
 
-      for (int row = 0; row < rows; row++) {
-        for (int col = 0; col < columns; col++) {
-          TileType? type;
+    //   for (int row = 0; row < rows; row++) {
+    //     for (int col = 0; col < columns; col++) {
+    //       TileType? type;
+    //       if (row == 0) {
+    //         if (row == 0 && col == 0) {
+    //           type = TileType.start;
+    //         } else if (row == 0 && col == 1) {
+    //           type = TileType.normal_landscape2;
+    //         } else if (row == 0 && col == 2) {
+    //           type = TileType.belok_enamsembilan;
+    //         } else if (row == 0 && col == 3) {
+    //           type = null;
+    //         } else {
+    //           type = TileType.finish;
+    //         }
+    //       } else if (row == 1 && col == 2) {
+    //         type = TileType.belok_noltiga;
+    //       } else if (row == 1 && col == 3) {
+    //         type = TileType.normal_landscape2;
+    //       } else if (row == 1 && col == 4) {
+    //         type = TileType.belok_sembilannol;
+    //       } else {
+    //         type = null;
+    //       }
 
-          if (row == 0) {
-            if (col == 0) {
-              type = TileType.start;
-            } else if (row == 0 && col == 1) {
-              type = TileType.belok_enamsembilan;
-            } else {
-              type = null;
-            }
-          } else if (row == 1 && (col == 1)) {
-            type = TileType.belok_noltiga;
-          } else if (row == 1 && (col == 2)) {
-            type = TileType.normal_landscape2;
-          } else if (row == 1 && (col == 3)) {
-            type = TileType.belok_enamsembilan;
-          } else if (row == 2 && (col == 0 || col == 1 || col == 2)) {
-            type = null;
-          } else if (row == 2 && col == 3) {
-            type = TileType.finish;
-          }
+    //       if (type != null) {
+    //         final id = 'row${row}_col$col';
+    //         final position = Vector2(
+    //           startX + col * tileSize,
+    //           startY + row * tileSize,
+    //         );
+    //         tileGrid[row][col] = type;
+    //         final tile = FloorTile(id: id, type: type, position: position);
+    //         add(tile);
 
-          if (type != null) {
-            final id = 'row${row}_col$col';
-            final position = Vector2(
-              startX + col * tileSize,
-              startY + row * tileSize,
-            );
+    //         if (type == TileType.start) {
+    //           startTileCenter = position + Vector2(tileSize / 2, tileSize / 2);
+    //         }
+    //       }
+    //     }
+    //   }
+    // } else if (currentLevel == 6) {
+    //   const rows = 3;
+    //   const columns = 6;
+    //   startX = (size.x - columns * tileSize) / 2;
+    //   startY = (size.y - rows * tileSize) / 2;
 
-            tileGrid[row][col] = type;
-            final tile = FloorTile(id: id, type: type, position: position);
-            add(tile);
+    //   tileGrid = List.generate(rows, (row) => List.filled(columns, null));
 
-            if (type == TileType.start) {
-              startTileCenter = position + Vector2(tileSize / 2, tileSize / 2);
-            }
-          }
-        }
-      }
-    } else if (currentLevel == 5) {
-      const rows = 2;
-      const columns = 5;
-      startX = (size.x - columns * tileSize) / 2;
-      startY = (size.y - rows * tileSize) / 2;
+      // for (int row = 0; row < rows; row++) {
+      //   for (int col = 0; col < columns; col++) {
+      //     TileType? type;
+      //     if (row == 0) {
+      //       if (col == 3 || col == 4) {
+      //         type = null;
+      //       } else if (col == 0) {
+      //         type = TileType.start;
+      //       } else if (col == 1) {
+      //         type = TileType.normal_landscape2;
+      //       } else if (col == 2) {
+      //         type = TileType.belok_enamsembilan;
+      //       } else {
+      //         type = TileType.finish;
+      //       }
+      //     } else if (row == 1 && col == 2) {
+      //       type = TileType.normal;
+      //     } else if (row == 1 && col == 4) {
+      //       type = TileType.belok_tigaenam;
+      //     } else if (row == 1 && col == 5) {
+      //       type = TileType.belok_sembilannol;
+      //     } else if (row == 2 && col == 2) {
+      //       type = TileType.belok_noltiga;
+      //     } else if (row == 2 && col == 3) {
+      //       type = TileType.normal_landscape2;
+      //     } else if (row == 2 && col == 4) {
+      //       type = TileType.belok_sembilannol;
+      //     }
 
-      tileGrid = List.generate(rows, (row) => List.filled(columns, null));
+      //     if (type != null) {
+      //       final id = 'row${row}_col$col';
+      //       final position = Vector2(
+      //         startX + col * tileSize,
+      //         startY + row * tileSize,
+      //       );
+      //       tileGrid[row][col] = type;
+      //       final tile = FloorTile(id: id, type: type, position: position);
+      //       add(tile);
 
-      for (int row = 0; row < rows; row++) {
-        for (int col = 0; col < columns; col++) {
-          TileType? type;
-          if (row == 0) {
-            if (row == 0 && col == 0) {
-              type = TileType.start;
-            } else if (row == 0 && col == 1) {
-              type = TileType.normal_landscape2;
-            } else if (row == 0 && col == 2) {
-              type = TileType.belok_enamsembilan;
-            } else if (row == 0 && col == 3) {
-              type = null;
-            } else {
-              type = TileType.finish;
-            }
-          } else if (row == 1 && col == 2) {
-            type = TileType.belok_noltiga;
-          } else if (row == 1 && col == 3) {
-            type = TileType.normal_landscape2;
-          } else if (row == 1 && col == 4) {
-            type = TileType.belok_sembilannol;
-          } else {
-            type = null;
-          }
-
-          if (type != null) {
-            final id = 'row${row}_col$col';
-            final position = Vector2(
-              startX + col * tileSize,
-              startY + row * tileSize,
-            );
-            tileGrid[row][col] = type;
-            final tile = FloorTile(id: id, type: type, position: position);
-            add(tile);
-
-            if (type == TileType.start) {
-              startTileCenter = position + Vector2(tileSize / 2, tileSize / 2);
-            }
-          }
-        }
-      }
-    } else if (currentLevel == 6) {
-      const rows = 3;
-      const columns = 6;
-      startX = (size.x - columns * tileSize) / 2;
-      startY = (size.y - rows * tileSize) / 2;
-
-      tileGrid = List.generate(rows, (row) => List.filled(columns, null));
-
-      for (int row = 0; row < rows; row++) {
-        for (int col = 0; col < columns; col++) {
-          TileType? type;
-          if (row == 0) {
-            if (col == 3 || col == 4) {
-              type = null;
-            } else if (col == 0) {
-              type = TileType.start;
-            } else if (col == 1) {
-              type = TileType.normal_landscape2;
-            } else if (col == 2) {
-              type = TileType.belok_enamsembilan;
-            } else {
-              type = TileType.finish;
-            }
-          } else if (row == 1 && col == 2) {
-            type = TileType.normal;
-          } else if (row == 1 && col == 4) {
-            type = TileType.belok_tigaenam;
-          } else if (row == 1 && col == 5) {
-            type = TileType.belok_sembilannol;
-          } else if (row == 2 && col == 2) {
-            type = TileType.belok_noltiga;
-          } else if (row == 2 && col == 3) {
-            type = TileType.normal_landscape2;
-          } else if (row == 2 && col == 4) {
-            type = TileType.belok_sembilannol;
-          }
-
-          if (type != null) {
-            final id = 'row${row}_col$col';
-            final position = Vector2(
-              startX + col * tileSize,
-              startY + row * tileSize,
-            );
-            tileGrid[row][col] = type;
-            final tile = FloorTile(id: id, type: type, position: position);
-            add(tile);
-
-            if (type == TileType.start) {
-              startTileCenter = position + Vector2(tileSize / 2, tileSize / 2);
-            }
-          }
-        }
-      }
+      //       if (type == TileType.start) {
+      //         startTileCenter = position + Vector2(tileSize / 2, tileSize / 2);
+      //       }
+      //     }
+      //   }
+      // }
     }
   }
 
@@ -1175,11 +1134,7 @@ class Character extends SpriteComponent with HasGameRef<MyGame> {
   Completer<void>? _rotationCompleter;
 
   Character()
-      : super(
-          size: Vector2.all(80),
-          anchor: Anchor.center,
-          priority: 10,
-        );
+      : super(size: Vector2.all(80), anchor: Anchor.center); //ukuran karakter
 
   @override
   Future<void> onLoad() async {
@@ -1192,7 +1147,6 @@ class Character extends SpriteComponent with HasGameRef<MyGame> {
   void onGameResize(Vector2 size) {
     super.onGameResize(size);
     updateSize(size.x);
-    // _generateFloorTiles();
   }
 
   void updateSize(double screenWidth) {

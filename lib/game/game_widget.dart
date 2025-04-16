@@ -240,34 +240,34 @@ class _GameScreenState extends State<GameScreen> {
                 height: double.infinity,
               ),
             ),
-            if (!isSmallScreen)
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 10),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: EdgeInsets.all(8),
-                child: Column(
-                  children: [
-                    _buildControlButton(
-                      'assets/icons/walk_off.svg',
-                      () => addCommand('MAJU'),
-                      size: isSmallScreen ? 50 : 30,
-                    ),
-                    _buildControlButton(
-                      'assets/icons/left_off.svg',
-                      () => addCommand('KIRI'),
-                      size: isSmallScreen ? 50 : 30,
-                    ),
-                    _buildControlButton(
-                      'assets/icons/right_off.svg',
-                      () => addCommand('KANAN'),
-                      size: isSmallScreen ? 50 : 30,
-                    ),
-                  ],
-                ),
-              ),
+            // if (!isSmallScreen)
+            //   Container(
+            //     margin: const EdgeInsets.symmetric(horizontal: 10),
+            //     decoration: BoxDecoration(
+            //       color: Colors.white,
+            //       borderRadius: BorderRadius.circular(12),
+            //     ),
+            //     padding: EdgeInsets.all(8),
+            //     child: Column(
+            //       children: [
+            //         _buildControlButton(
+            //           'assets/icons/walk_off.svg',
+            //           () => addCommand('MAJU'),
+            //           size: isSmallScreen ? 50 : 30,
+            //         ),
+            //         _buildControlButton(
+            //           'assets/icons/left_off.svg',
+            //           () => addCommand('KIRI'),
+            //           size: isSmallScreen ? 50 : 30,
+            //         ),
+            //         _buildControlButton(
+            //           'assets/icons/right_off.svg',
+            //           () => addCommand('KANAN'),
+            //           size: isSmallScreen ? 50 : 30,
+            //         ),
+            //       ],
+            //     ),
+            //   ),
             Column(
               children: [
                 const SizedBox(height: 5),
@@ -371,6 +371,43 @@ class _GameScreenState extends State<GameScreen> {
                   ),
                 ),
               ],
+            ),
+            Align(
+              alignment: Alignment
+                  .centerLeft, // ⬅️ kiri secara horizontal, tengah secara vertikal
+              child: !isSmallScreen
+                  ? Container(
+                      margin: EdgeInsets.only(left: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: EdgeInsets.all(8),
+                      child: Column(
+                        mainAxisSize:
+                            MainAxisSize.min, // biar tingginya cuma sesuai isi
+                        mainAxisAlignment: MainAxisAlignment.center,
+
+                        children: [
+                          _buildControlButton(
+                            'assets/icons/walk_off.svg',
+                            () => addCommand('MAJU'),
+                            size: isSmallScreen ? 50 : 30,
+                          ),
+                          _buildControlButton(
+                            'assets/icons/left_off.svg',
+                            () => addCommand('KIRI'),
+                            size: isSmallScreen ? 50 : 30,
+                          ),
+                          _buildControlButton(
+                            'assets/icons/right_off.svg',
+                            () => addCommand('KANAN'),
+                            size: isSmallScreen ? 50 : 30,
+                          ),
+                        ],
+                      ),
+                    )
+                  : SizedBox.shrink(),
             ),
           ],
         ),
