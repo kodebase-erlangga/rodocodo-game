@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:rodocodo_game/fastTrack/fast_gameWidget.dart';
 import 'package:rodocodo_game/main.dart';
-import 'package:rodocodo_game/game/orientation_guard.dart' as og;
+import 'package:rodocodo_game/widgets/orientation_guard.dart' as og;
 import 'package:rodocodo_game/game/opsiLevel.dart' as ol;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -45,15 +45,15 @@ class _FastLevelState extends State<FastLevel> with RouteAware {
     setState(() => _starsFuture = _loadStars());
   }
 
-  Future<void> _updateStars(int level, int stars) async {
+  Future<void> _updateStars(int fastlevel, int stars) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('level$level', stars);
+    await prefs.setInt('fastlevel$fastlevel', stars);
     setState(() => _starsFuture = _loadStars());
   }
 
   Future<Map<int, int>> _loadStars() async {
     final prefs = await SharedPreferences.getInstance();
-    return {for (int i = 1; i <= 6; i++) i: prefs.getInt('level$i') ?? 0};
+    return {for (int i = 1; i <= 6; i++) i: prefs.getInt('fastlevel$i') ?? 0};
   }
 
   String _getStarImage(int stars, bool isUnlocked) {
@@ -135,11 +135,11 @@ class _FastLevelState extends State<FastLevel> with RouteAware {
                   return Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _buildLevelRow(1, 3, stars, isTablet, screenSize.width,
-                          screenSize.height),
+                      _buildFastLevelRow(1, 3, stars, isTablet,
+                          screenSize.width, screenSize.height),
                       SizedBox(height: isTablet ? 30 : 10),
-                      _buildLevelRow(4, 6, stars, isTablet, screenSize.width,
-                          screenSize.height),
+                      _buildFastLevelRow(4, 6, stars, isTablet,
+                          screenSize.width, screenSize.height),
                     ],
                   );
                 },
@@ -151,8 +151,8 @@ class _FastLevelState extends State<FastLevel> with RouteAware {
     );
   }
 
-  Widget _buildLevelRow(int start, int end, Map<int, int> stars, bool isTablet,
-      double screenWidth, double screenHeight) {
+  Widget _buildFastLevelRow(int start, int end, Map<int, int> stars,
+      bool isTablet, double screenWidth, double screenHeight) {
     double itemSize = isTablet ? screenWidth * 0.10 : screenWidth * 0.17;
     double fontSize = isTablet ? 50 : 35;
     double padding = isTablet ? 40 : 10;
@@ -161,16 +161,17 @@ class _FastLevelState extends State<FastLevel> with RouteAware {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(end - start + 1, (index) {
-        final level = start + index;
-        final isUnlocked = level == 1 || (level > 1 && stars[level - 1]! > 0);
-        return _buildLevelItem(
-            level, stars, isUnlocked, itemSize, fontSize, padding, isTablet);
+        final fastlevel = start + index;
+        final isUnlocked =
+            fastlevel == 1 || (fastlevel > 1 && stars[fastlevel - 1]! > 0);
+        return _buildLevelItem(fastlevel, stars, isUnlocked, itemSize, fontSize,
+            padding, isTablet);
       }).expand((widget) => [widget, SizedBox(width: spacing)]).toList()
         ..removeLast(),
     );
   }
 
-  Widget _buildLevelItem(int level, Map<int, int> stars, bool isUnlocked,
+  Widget _buildLevelItem(int fastlevel, Map<int, int> stars, bool isUnlocked,
       double itemSize, double fontSize, double padding, bool isTablet) {
     return GestureDetector(
       onTap: isUnlocked
@@ -179,8 +180,9 @@ class _FastLevelState extends State<FastLevel> with RouteAware {
                 context,
                 MaterialPageRoute(
                   builder: (context) => FastGameScreen(
-                    initialLevel: level,
-                    onLevelCompleted: (stars) => _updateStars(level, stars),
+                    fastinitialLevel: fastlevel,
+                    fastonLevelCompleted: (stars) =>
+                        _updateStars(fastlevel, stars),
                   ),
                 ),
               );
@@ -195,7 +197,7 @@ class _FastLevelState extends State<FastLevel> with RouteAware {
               width: itemSize,
               height: itemSize,
               child: Image.asset(
-                _getStarImage(stars[level]!, isUnlocked),
+                _getStarImage(stars[fastlevel]!, isUnlocked),
                 fit: BoxFit.contain,
               ),
             ),
@@ -203,7 +205,7 @@ class _FastLevelState extends State<FastLevel> with RouteAware {
           Transform.translate(
             offset: Offset(0, 25),
             child: Text(
-              '$level',
+              '$fastlevel',
               style: TextStyle(
                 fontSize: fontSize,
                 fontWeight: FontWeight.w900,

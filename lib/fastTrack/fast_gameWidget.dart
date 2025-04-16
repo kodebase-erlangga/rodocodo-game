@@ -4,18 +4,18 @@ import 'package:rodocodo_game/fastTrack/fast_Level.dart';
 import 'package:rodocodo_game/fastTrack/fast_gameLogic.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flame_audio/flame_audio.dart';
-import 'package:rodocodo_game/game/orientation_guard.dart'; // pastikan path ini benar
+import 'package:rodocodo_game/widgets/orientation_guard.dart'; // pastikan path ini benar
 
 bool disableButtons = false;
 
 class FastGameScreen extends StatefulWidget {
-  final int initialLevel;
-  final Function(int)? onLevelCompleted;
+  final int fastinitialLevel;
+  final Function(int)? fastonLevelCompleted;
 
   const FastGameScreen({
     super.key,
-    required this.initialLevel,
-    this.onLevelCompleted,
+    required this.fastinitialLevel,
+    this.fastonLevelCompleted,
   });
 
   @override
@@ -143,8 +143,8 @@ class _FastGameScreenState extends State<FastGameScreen> {
   @override
   void initState() {
     super.initState();
-    _game = Fast(initialLevel: widget.initialLevel);
-    _game.onLevelCompleted = widget.onLevelCompleted;
+    _game = Fast(fastinitialLevel: widget.fastinitialLevel);
+    _game.fastonLevelCompleted = widget.fastonLevelCompleted;
     _game.clearCommands = clearCommands;
     _game.naikLevel = () {
       setState(() {
@@ -219,7 +219,7 @@ class _FastGameScreenState extends State<FastGameScreen> {
             },
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFFB8C14C),
         body: Stack(
           children: [
             Column(
@@ -228,24 +228,32 @@ class _FastGameScreenState extends State<FastGameScreen> {
                 Row(
                   children: [
                     if (!isSmallScreen)
-                      Column(
-                        children: [
-                          _buildControlButton(
-                            'assets/icons/walk_off.svg',
-                            () => addCommand('MAJU'),
-                            size: isSmallScreen ? 50 : 30,
-                          ),
-                          _buildControlButton(
-                            'assets/icons/left_off.svg',
-                            () => addCommand('KIRI'),
-                            size: isSmallScreen ? 50 : 30,
-                          ),
-                          _buildControlButton(
-                            'assets/icons/right_off.svg',
-                            () => addCommand('KANAN'),
-                            size: isSmallScreen ? 50 : 30,
-                          ),
-                        ],
+                      Container(
+                        margin: EdgeInsets.only(left: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: EdgeInsets.all(8),
+                        child: Column(
+                          children: [
+                            _buildControlButton(
+                              'assets/icons/walk_off.svg',
+                              () => addCommand('MAJU'),
+                              size: isSmallScreen ? 50 : 30,
+                            ),
+                            _buildControlButton(
+                              'assets/icons/left_off.svg',
+                              () => addCommand('KIRI'),
+                              size: isSmallScreen ? 50 : 30,
+                            ),
+                            _buildControlButton(
+                              'assets/icons/right_off.svg',
+                              () => addCommand('KANAN'),
+                              size: isSmallScreen ? 50 : 30,
+                            ),
+                          ],
+                        ),
                       ),
                     Expanded(
                       child: Padding(
@@ -261,8 +269,8 @@ class _FastGameScreenState extends State<FastGameScreen> {
                   ],
                 ),
                 Container(
-                  padding: EdgeInsets.all(isSmallScreen ? 8 : 0),
-                  color: Colors.white,
+                  padding: EdgeInsets.all(isSmallScreen ? 8 : 4),
+                  color: Color(0XFFB8C14C),
                   child: Column(
                     children: [
                       Row(

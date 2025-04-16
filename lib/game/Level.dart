@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:rodocodo_game/game/game_widget.dart';
 import 'package:rodocodo_game/main.dart';
-import 'package:rodocodo_game/game/orientation_guard.dart' as og;
+import 'package:rodocodo_game/widgets/orientation_guard.dart' as og;
 import 'package:rodocodo_game/game/opsiLevel.dart' as ol;
 import 'package:shared_preferences/shared_preferences.dart';
 

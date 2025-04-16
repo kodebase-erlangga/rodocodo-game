@@ -10,7 +10,7 @@ import 'package:rodocodo_game/fastTrack/fast_Level.dart';
 import 'package:rodocodo_game/fastTrack/fast_gameWidget.dart';
 import 'package:rodocodo_game/game/mainPage.dart';
 
-enum TileType {
+enum FastTileType {
   start,
   finish,
   normal,
@@ -21,20 +21,20 @@ enum TileType {
   belok_tigaenam
 }
 
-class FloorTile extends SpriteComponent with HasGameRef<Fast> {
+class FastFloorTile extends SpriteComponent with HasGameRef<Fast> {
   final String id;
-  TileType _type;
-  TileType get type => _type;
-  set type(TileType newType) {
+  FastTileType _type;
+  FastTileType get type => _type;
+  set type(FastTileType newType) {
     if (newType != _type) {
       _type = newType;
       _updateSprite();
     }
   }
 
-  FloorTile({
+  FastFloorTile({
     required this.id,
-    required TileType type,
+    required FastTileType type,
     required Vector2 position,
   })  : _type = type,
         super(position: position, size: Vector2.all(150));
@@ -69,28 +69,28 @@ class FloorTile extends SpriteComponent with HasGameRef<Fast> {
 
   Future<void> _updateSprite() async {
     switch (_type) {
-      case TileType.start:
+      case FastTileType.start:
         sprite = await gameRef.loadSprite('start.png');
         break;
-      case TileType.normal:
+      case FastTileType.normal:
         sprite = await gameRef.loadSprite('lantai.png');
         break;
-      case TileType.belok_noltiga:
+      case FastTileType.belok_noltiga:
         sprite = await gameRef.loadSprite('belok_noltiga.png');
         break;
-      case TileType.belok_tigaenam:
+      case FastTileType.belok_tigaenam:
         sprite = await gameRef.loadSprite('belok_tigaenam.png');
         break;
-      case TileType.belok_enamsembilan:
+      case FastTileType.belok_enamsembilan:
         sprite = await gameRef.loadSprite('belok_enamsembilan.png');
         break;
-      case TileType.belok_sembilannol:
+      case FastTileType.belok_sembilannol:
         sprite = await gameRef.loadSprite('belok_sembilannol.png');
         break;
-      case TileType.normal_landscape:
+      case FastTileType.normal_landscape:
         sprite = await gameRef.loadSprite('lantai_landscape.png');
         break;
-      case TileType.finish:
+      case FastTileType.finish:
         sprite = await gameRef.loadSprite('finish.png');
         break;
     }
@@ -98,10 +98,10 @@ class FloorTile extends SpriteComponent with HasGameRef<Fast> {
 }
 
 class Fast extends FlameGame {
-  late Character _character;
+  late FastCharacter _character;
   bool isExecuting = false;
   bool _isExecutingCommands = false;
-  List<List<TileType?>> tileGrid = [];
+  List<List<FastTileType?>> tileGrid = [];
   late double startX;
   late double startY;
   late Vector2 startTileCenter;
@@ -110,18 +110,18 @@ class Fast extends FlameGame {
   int Function()? getMoveCount;
   bool isTargetReached = false;
   int currentLevel = 1;
-  Function(int)? onLevelCompleted;
+  Function(int)? fastonLevelCompleted;
   AudioPlayer? _startEnginePlayer;
   AudioPlayer? _gasPlayer;
   bool _isFirstCommand = true;
   Function()? clearCommands;
   double tileSize = 150.0;
 
-  Fast({int initialLevel = 1, this.onLevelCompleted})
-      : currentLevel = initialLevel;
+  Fast({int fastinitialLevel = 1, this.fastonLevelCompleted})
+      : currentLevel = fastinitialLevel;
 
   @override
-  Color backgroundColor() => Colors.white;
+  Color backgroundColor() => Color(0xFFB8C14C);
 
   @override
   Future<void> onRemove() async {
@@ -138,8 +138,8 @@ class Fast extends FlameGame {
 
     updateTileSize(size.x);
 
-    _generateFloorTiles();
-    _character = Character();
+    _generateFastFloorTiles();
+    _character = FastCharacter();
     _character.position = startTileCenter;
     add(_character);
   }
@@ -756,8 +756,8 @@ class Fast extends FlameGame {
     super.onAttach();
   }
 
-  void _generateFloorTiles() {
-    removeWhere((component) => component is FloorTile);
+  void _generateFastFloorTiles() {
+    removeWhere((component) => component is FastFloorTile);
 
     if (currentLevel == 1) {
       const rows = 1;
@@ -766,7 +766,7 @@ class Fast extends FlameGame {
       startY = (size.y - tileSize) / 2;
 
       tileGrid = List.generate(
-          rows, (row) => List.filled(columns, TileType.normal_landscape));
+          rows, (row) => List.filled(columns, FastTileType.normal_landscape));
 
       for (int row = 0; row < rows; row++) {
         for (int col = 0; col < columns; col++) {
@@ -777,16 +777,16 @@ class Fast extends FlameGame {
           );
 
           final type = col == 0
-              ? TileType.start
+              ? FastTileType.start
               : col == columns - 1
-                  ? TileType.finish
-                  : TileType.normal_landscape;
+                  ? FastTileType.finish
+                  : FastTileType.normal_landscape;
 
           tileGrid[row][col] = type;
-          final tile = FloorTile(id: id, type: type, position: position);
+          final tile = FastFloorTile(id: id, type: type, position: position);
           add(tile);
 
-          if (type == TileType.start) {
+          if (type == FastTileType.start) {
             startTileCenter = position + Vector2(tileSize / 2, tileSize / 2);
           }
         }
@@ -801,20 +801,20 @@ class Fast extends FlameGame {
 
       for (int row = 0; row < rows; row++) {
         for (int col = 0; col < columns; col++) {
-          TileType? type;
+          FastTileType? type;
 
           if (row == 0) {
             if (col == 0) {
-              type = TileType.start;
+              type = FastTileType.start;
             } else {
-              type = TileType.belok_enamsembilan;
+              type = FastTileType.belok_enamsembilan;
             }
           } else if (row == 1 && col == 1) {
-            type = TileType.normal;
+            type = FastTileType.normal;
           } else if (row == 2 && col == 1) {
-            type = TileType.belok_sembilannol;
+            type = FastTileType.belok_sembilannol;
           } else if (row == 2 && col == 0) {
-            type = TileType.finish;
+            type = FastTileType.finish;
           }
 
           if (type != null) {
@@ -825,10 +825,10 @@ class Fast extends FlameGame {
             );
 
             tileGrid[row][col] = type;
-            final tile = FloorTile(id: id, type: type, position: position);
+            final tile = FastFloorTile(id: id, type: type, position: position);
             add(tile);
 
-            if (type == TileType.start) {
+            if (type == FastTileType.start) {
               startTileCenter = position + Vector2(tileSize / 2, tileSize / 2);
             }
           }
@@ -844,22 +844,22 @@ class Fast extends FlameGame {
 
       for (int row = 0; row < rows; row++) {
         for (int col = 0; col < columns; col++) {
-          TileType? type;
+          FastTileType? type;
 
           if (row == 0) {
             if (col == 0) {
-              type = TileType.start;
+              type = FastTileType.start;
             } else if (row == 0 && col == 1) {
-              type = TileType.belok_enamsembilan;
+              type = FastTileType.belok_enamsembilan;
             } else {
               type = null;
             }
           } else if (row == 1 && col == 1) {
-            type = TileType.normal;
+            type = FastTileType.normal;
           } else if (row == 2 && col == 1) {
-            type = TileType.belok_noltiga;
+            type = FastTileType.belok_noltiga;
           } else if (row == 2 && col == 2) {
-            type = TileType.finish;
+            type = FastTileType.finish;
           }
 
           if (type != null) {
@@ -870,10 +870,10 @@ class Fast extends FlameGame {
             );
 
             tileGrid[row][col] = type;
-            final tile = FloorTile(id: id, type: type, position: position);
+            final tile = FastFloorTile(id: id, type: type, position: position);
             add(tile);
 
-            if (type == TileType.start) {
+            if (type == FastTileType.start) {
               startTileCenter = position + Vector2(tileSize / 2, tileSize / 2);
             }
           }
@@ -889,26 +889,26 @@ class Fast extends FlameGame {
 
       for (int row = 0; row < rows; row++) {
         for (int col = 0; col < columns; col++) {
-          TileType? type;
+          FastTileType? type;
 
           if (row == 0) {
             if (col == 0) {
-              type = TileType.start;
+              type = FastTileType.start;
             } else if (row == 0 && col == 1) {
-              type = TileType.belok_enamsembilan;
+              type = FastTileType.belok_enamsembilan;
             } else {
               type = null;
             }
           } else if (row == 1 && (col == 1)) {
-            type = TileType.belok_noltiga;
+            type = FastTileType.belok_noltiga;
           } else if (row == 1 && (col == 2)) {
-            type = TileType.normal_landscape;
+            type = FastTileType.normal_landscape;
           } else if (row == 1 && (col == 3)) {
-            type = TileType.belok_enamsembilan;
+            type = FastTileType.belok_enamsembilan;
           } else if (row == 2 && (col == 0 || col == 1 || col == 2)) {
             type = null;
           } else if (row == 2 && col == 3) {
-            type = TileType.finish;
+            type = FastTileType.finish;
           }
 
           if (type != null) {
@@ -919,10 +919,10 @@ class Fast extends FlameGame {
             );
 
             tileGrid[row][col] = type;
-            final tile = FloorTile(id: id, type: type, position: position);
+            final tile = FastFloorTile(id: id, type: type, position: position);
             add(tile);
 
-            if (type == TileType.start) {
+            if (type == FastTileType.start) {
               startTileCenter = position + Vector2(tileSize / 2, tileSize / 2);
             }
           }
@@ -938,25 +938,25 @@ class Fast extends FlameGame {
 
       for (int row = 0; row < rows; row++) {
         for (int col = 0; col < columns; col++) {
-          TileType? type;
+          FastTileType? type;
           if (row == 0) {
             if (row == 0 && col == 0) {
-              type = TileType.start;
+              type = FastTileType.start;
             } else if (row == 0 && col == 1) {
-              type = TileType.normal_landscape;
+              type = FastTileType.normal_landscape;
             } else if (row == 0 && col == 2) {
-              type = TileType.belok_enamsembilan;
+              type = FastTileType.belok_enamsembilan;
             } else if (row == 0 && col == 3) {
               type = null;
             } else {
-              type = TileType.finish;
+              type = FastTileType.finish;
             }
           } else if (row == 1 && col == 2) {
-            type = TileType.belok_noltiga;
+            type = FastTileType.belok_noltiga;
           } else if (row == 1 && col == 3) {
-            type = TileType.normal_landscape;
+            type = FastTileType.normal_landscape;
           } else if (row == 1 && col == 4) {
-            type = TileType.belok_sembilannol;
+            type = FastTileType.belok_sembilannol;
           } else {
             type = null;
           }
@@ -968,10 +968,10 @@ class Fast extends FlameGame {
               startY + row * tileSize,
             );
             tileGrid[row][col] = type;
-            final tile = FloorTile(id: id, type: type, position: position);
+            final tile = FastFloorTile(id: id, type: type, position: position);
             add(tile);
 
-            if (type == TileType.start) {
+            if (type == FastTileType.start) {
               startTileCenter = position + Vector2(tileSize / 2, tileSize / 2);
             }
           }
@@ -987,31 +987,31 @@ class Fast extends FlameGame {
 
       for (int row = 0; row < rows; row++) {
         for (int col = 0; col < columns; col++) {
-          TileType? type;
+          FastTileType? type;
           if (row == 0) {
             if (col == 3 || col == 4) {
               type = null;
             } else if (col == 0) {
-              type = TileType.start;
+              type = FastTileType.start;
             } else if (col == 1) {
-              type = TileType.normal_landscape;
+              type = FastTileType.normal_landscape;
             } else if (col == 2) {
-              type = TileType.belok_enamsembilan;
+              type = FastTileType.belok_enamsembilan;
             } else {
-              type = TileType.finish;
+              type = FastTileType.finish;
             }
           } else if (row == 1 && col == 2) {
-            type = TileType.normal;
+            type = FastTileType.normal;
           } else if (row == 1 && col == 4) {
-            type = TileType.belok_tigaenam;
+            type = FastTileType.belok_tigaenam;
           } else if (row == 1 && col == 5) {
-            type = TileType.belok_sembilannol;
+            type = FastTileType.belok_sembilannol;
           } else if (row == 2 && col == 2) {
-            type = TileType.belok_noltiga;
+            type = FastTileType.belok_noltiga;
           } else if (row == 2 && col == 3) {
-            type = TileType.normal_landscape;
+            type = FastTileType.normal_landscape;
           } else if (row == 2 && col == 4) {
-            type = TileType.belok_sembilannol;
+            type = FastTileType.belok_sembilannol;
           }
 
           if (type != null) {
@@ -1021,10 +1021,10 @@ class Fast extends FlameGame {
               startY + row * tileSize,
             );
             tileGrid[row][col] = type;
-            final tile = FloorTile(id: id, type: type, position: position);
+            final tile = FastFloorTile(id: id, type: type, position: position);
             add(tile);
 
-            if (type == TileType.start) {
+            if (type == FastTileType.start) {
               startTileCenter = position + Vector2(tileSize / 2, tileSize / 2);
             }
           }
@@ -1096,7 +1096,7 @@ class Fast extends FlameGame {
       return;
     }
 
-    if (tileGrid[tileY][tileX] == TileType.finish) {
+    if (tileGrid[tileY][tileX] == FastTileType.finish) {
       isTargetReached = true;
       showCongratsPopup();
     }
@@ -1104,15 +1104,13 @@ class Fast extends FlameGame {
 
   void showCongratsPopup() {
     FlameAudio.bgm.stop();
-    // FlameAudio.play('success.mp3');
-
     if (currentLevel == 6) {
       overlays.add('gameFinished');
     } else {
       overlays.add('congrats');
     }
-    if (onLevelCompleted != null) {
-      onLevelCompleted!(calculateStars());
+    if (fastonLevelCompleted != null) {
+      fastonLevelCompleted!(calculateStars());
     }
   }
 
@@ -1126,8 +1124,8 @@ class Fast extends FlameGame {
 
     removeAll(children);
 
-    _generateFloorTiles();
-    _character = Character();
+    _generateFastFloorTiles();
+    _character = FastCharacter();
     _character.position = startTileCenter;
     add(_character);
 
@@ -1143,7 +1141,7 @@ class Fast extends FlameGame {
   }
 }
 
-class Character extends SpriteComponent with HasGameRef<Fast> {
+class FastCharacter extends SpriteComponent with HasGameRef<Fast> {
   // static const double moveDistance = 150;
   late double moveDistance;
   static const double speed = 100;
@@ -1153,7 +1151,7 @@ class Character extends SpriteComponent with HasGameRef<Fast> {
   Completer<void>? _movementCompleter;
   Completer<void>? _rotationCompleter;
 
-  Character() : super(size: Vector2.all(80), anchor: Anchor.center);
+  FastCharacter() : super(size: Vector2.all(80), anchor: Anchor.center);
 
   @override
   Future<void> onLoad() async {

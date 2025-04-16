@@ -56,13 +56,7 @@ class _OrientationGuardState extends State<OrientationGuard>
     if (kIsWeb) {
       final docElm = html.document.documentElement;
       if (docElm != null) {
-        if (docElm.requestFullscreen != null) {
-          docElm.requestFullscreen();
-        } else if ((docElm as dynamic).webkitRequestFullscreen != null) {
-          (docElm as dynamic).webkitRequestFullscreen();
-        } else if ((docElm as dynamic).msRequestFullscreen != null) {
-          (docElm as dynamic).msRequestFullscreen();
-        }
+        docElm.requestFullscreen();
       }
     }
     setState(() {

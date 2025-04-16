@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:rodocodo_game/game/orientation_guard.dart' as og;
+import 'package:rodocodo_game/widgets/orientation_guard.dart' as og;
 import 'package:rodocodo_game/game/opsiLevel.dart' as ol;
 
 class MainMenuScreen extends StatelessWidget {

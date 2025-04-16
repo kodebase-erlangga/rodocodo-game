@@ -2,10 +2,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:rodocodo_game/fastTrack/fast_Level.dart';
 // import 'package:google_fonts/google_fonts.dart';
 import 'package:rodocodo_game/game/Level.dart';
 import 'package:rodocodo_game/game/mainPage.dart';
-import 'package:rodocodo_game/game/orientation_guard.dart' as og;
+import 'package:rodocodo_game/widgets/orientation_guard.dart' as og;
 
 /// Untuk memastikan orientasi landscape di web
 class OrientationGuard extends StatefulWidget {
@@ -17,7 +18,7 @@ class OrientationGuard extends StatefulWidget {
 }
 
 class _OrientationGuardState extends State<OrientationGuard> {
-  static bool hasUnlockedFullScreenGlobal = false;
+  // static bool hasUnlockedFullScreenGlobal = false;
 
   @override
   Widget build(BuildContext context) {
@@ -140,7 +141,18 @@ class OpsiLevel extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        if (isLocked) {
+        if (title == "Tutorial") {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => Level()),
+          );
+        } else if (title == "Fast Track") {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => FastLevel()),
+          );
+        } else {
+          // Tampilkan dialog untuk level yang masih terkunci
           showDialog(
             context: context,
             builder: (BuildContext context) => Dialog(
@@ -224,8 +236,7 @@ class OpsiLevel extends StatelessWidget {
                           vertical: isSmallScreen ? 0.1 : 10,
                         ),
                         shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(isSmallScreen ? 30 : 30),
+                          borderRadius: BorderRadius.circular(30),
                           side: const BorderSide(
                             color: Color.fromARGB(255, 78, 36, 0),
                             width: 2,
@@ -246,11 +257,6 @@ class OpsiLevel extends StatelessWidget {
                 ),
               ),
             ),
-          );
-        } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => Level()),
           );
         }
       },

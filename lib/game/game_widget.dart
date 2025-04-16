@@ -4,7 +4,7 @@ import 'package:rodocodo_game/game/Level.dart';
 import 'game_logic.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flame_audio/flame_audio.dart';
-import 'package:rodocodo_game/game/orientation_guard.dart'; // pastikan path ini benar
+import 'package:rodocodo_game/widgets/orientation_guard.dart';
 
 bool disableButtons = false;
 
@@ -56,7 +56,6 @@ class _GameScreenState extends State<GameScreen> {
 
   void addCommand(String command) {
     if (_isExecuting || _isGameOver || commands.length >= 24) return;
-
     FlameAudio.play('command.mp3');
 
     setState(() {
@@ -241,61 +240,55 @@ class _GameScreenState extends State<GameScreen> {
                 height: double.infinity,
               ),
             ),
+            if (!isSmallScreen)
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: EdgeInsets.all(8),
+                child: Column(
+                  children: [
+                    _buildControlButton(
+                      'assets/icons/walk_off.svg',
+                      () => addCommand('MAJU'),
+                      size: isSmallScreen ? 50 : 30,
+                    ),
+                    _buildControlButton(
+                      'assets/icons/left_off.svg',
+                      () => addCommand('KIRI'),
+                      size: isSmallScreen ? 50 : 30,
+                    ),
+                    _buildControlButton(
+                      'assets/icons/right_off.svg',
+                      () => addCommand('KANAN'),
+                      size: isSmallScreen ? 50 : 30,
+                    ),
+                  ],
+                ),
+              ),
             Column(
               children: [
                 const SizedBox(height: 5),
                 Row(
                   children: [
-                    if (!isSmallScreen)
-                      Container(
-                        margin: EdgeInsets.only(left: 10),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: EdgeInsets.all(8),
-                        child: Column(
-                          children: [
-                            _buildControlButton(
-                              'assets/icons/walk_off.svg',
-                              () => addCommand('MAJU'),
-                              size: isSmallScreen ? 50 : 30,
-                            ),
-                            _buildControlButton(
-                              'assets/icons/left_off.svg',
-                              () => addCommand('KIRI'),
-                              size: isSmallScreen ? 50 : 30,
-                            ),
-                            _buildControlButton(
-                              'assets/icons/right_off.svg',
-                              () => addCommand('KANAN'),
-                              size: isSmallScreen ? 50 : 30,
-                            ),
-                          ],
-                        ),
-                      ),
                     Expanded(
                       child: Padding(
-                        padding: EdgeInsets.fromLTRB(
-                          isSmallScreen ? 200 : 60, // left
-                          isSmallScreen ? 30 : 30, // top
-                          isSmallScreen ? 200 : 100, // right
-                          isSmallScreen ? 10 : 15, // bottom
-                        ),
+                        padding: EdgeInsets.all(isSmallScreen ? 60 : 25),
                         child: SizedBox(
+                          width: MediaQuery.of(context).size.width *
+                              (isSmallScreen ? 0.5 : 0.7),
                           height: gameHeight,
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(20),
-                            child: GameWidget(game: _game),
-                          ),
+                          child: GameWidget(game: _game),
                         ),
                       ),
                     ),
                   ],
                 ),
                 Container(
-                  padding: EdgeInsets.all(isSmallScreen ? 8 : 0),
-                  color: Color(0XFFB8C14C),
+                  padding: EdgeInsets.all(isSmallScreen ? 8 : 4),
+                  color: Colors.transparent,
                   child: Column(
                     children: [
                       Row(
